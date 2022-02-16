@@ -10,12 +10,47 @@
 #include <fstream>
 #include <string>
 #include <format>
+#include <Windows.h>
 //#include <cstdint>
 
 //namespace fs = std::filesystem;
 using namespace cv;
 
 String CAMERA_NAME = "Alex_Camera";
+
+void Log(String input)
+{
+    std::cout << input << std::endl;
+}
+
+String getCurrentDateTime()
+{
+    time_t t = time(0);
+    struct tm now;
+    localtime_s(&now, &t);
+    char buffer[80];
+    strftime(buffer, 80, "%Y-%m-%d-%H-%M-%S", &now);
+
+    return buffer;
+}
+
+void makeScreenShot(cv::Mat& frame)
+{
+    String dirname = std::format("{}_Calibration_Images", CAMERA_NAME);
+
+    // check if directory exists
+    if (!std::filesystem::exists(dirname))
+    {
+        // if not then make it
+        std::filesystem::create_directory(dirname);
+    }
+
+    // create filename based on current date
+    String datetime = getCurrentDateTime();
+    String filename = std::format("{0}/{1}.png", dirname, datetime);
+    Log(std::format("Created the following file: {0}.png in directory {1}", datetime, dirname));
+    cv::imwrite(filename, frame);
+}
 
 int streamWebcamFeed()
 {
@@ -35,26 +70,10 @@ int streamWebcamFeed()
         cv::imshow("Camera feed", frame);
 
         // press spacebar for screenshot
-        if (cv::waitKey(0) == 32)
+        if(GetKeyState(32))
         {
-            String dirname = std::format("{}_Calibration_Images", CAMERA_NAME);
-            // check if directory exists
-            if (!std::filesystem::exists(dirname))
-            {
-                // if not then make it
-                std::filesystem::create_directory(dirname);
-            }
-
-            // make screenshot and add to directory
-            time_t t = time(0);
-            struct tm now;
-            localtime_s(&now, &t);
-            char buffer[80];
-            
-            String filename = std::format("{0}\\{1}.png", dirname, strftime(buffer, 80, "%Y-%m-%d.", &now));
-            imwrite(filename, frame);
+            makeScreenShot(frame);
         }
-
 
         if (cv::waitKey(10) == 27) break;
     }
