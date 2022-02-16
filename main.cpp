@@ -2,44 +2,27 @@
 //
 //
 //
-#include <iostream>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
-//
-//
-//
-using std::cout;
-using std::endl;
-//
-//
-//
-int main(int argc, char** argv) {
+#include <iostream>
 
-	std::cout << "Hello world!" << std::endl;
+using namespace cv;
 
-	if (argc != 2) {
-		cout << "Expecting a image file to be passed to program" << endl;
-		return -1;
-	}
-
-	cv::Mat img = cv::imread(argv[1]);
-
-	if (img.empty()) {
-		cout << "Not a valid image file" << endl;
-		return -1;
-	}
-
-
-
-	cv::namedWindow("Simple Demo", cv::WINDOW_AUTOSIZE);
-	cv::imshow("Simple Demo", img);
-
-
-
-	cv::waitKey(0);
-	cv::destroyAllWindows();
-
-
-
-	return 0;
+int main()
+{
+    std::string image_path = samples::findFile("starry_night.jpg");
+    Mat img = imread(image_path, IMREAD_COLOR);
+    if (img.empty())
+    {
+        std::cout << "Could not read the image: " << image_path << std::endl;
+        return 1;
+    }
+    imshow("Display window", img);
+    int k = waitKey(0); // Wait for a keystroke in the window
+    if (k == 's')
+    {
+        imwrite("starry_night.png", img);
+    }
+    return 0;
 }
