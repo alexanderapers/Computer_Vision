@@ -70,7 +70,7 @@ int streamWebcamFeed()
         cv::imshow("Camera feed", frame);
 
         // press spacebar for screenshot
-        if(GetKeyState(32))
+        if(GetAsyncKeyState(32))
         {
             makeScreenShot(frame);
         }
