@@ -82,24 +82,24 @@ int streamWebcamFeed()
     return 0;
 
 }
-
-int main()
-{
-    //std::string image_path = samples::findFile("starry_night.jpg");
-    //Mat img = imread(image_path, IMREAD_COLOR);
-    //if (img.empty())
-    //{
-    //    std::cout << "could not read the image: " << image_path << std::endl;
-    //    return 1;
-    //}
-    //imshow("display window", img);
-    //int k = waitKey(0); // wait for a keystroke in the window
-    //if (k == 's')
-    //{
-    //    imwrite("starry_night.png", img);
-    //}
-
-    streamWebcamFeed();
-
-    return 0;
-}
+//
+//int main()
+//{
+//    //std::string image_path = samples::findFile("starry_night.jpg");
+//    //Mat img = imread(image_path, IMREAD_COLOR);
+//    //if (img.empty())
+//    //{
+//    //    std::cout << "could not read the image: " << image_path << std::endl;
+//    //    return 1;
+//    //}
+//    //imshow("display window", img);
+//    //int k = waitKey(0); // wait for a keystroke in the window
+//    //if (k == 's')
+//    //{
+//    //    imwrite("starry_night.png", img);
+//    //}
+//
+//    streamWebcamFeed();
+//
+//    return 0;
+//}
