@@ -285,8 +285,6 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    std::cout << "hello" << std::endl;
-
     fs["Settings"] >> s;
     fs.release();                                         // close Settings file
     //! [file_read]
