@@ -1,243 +1,10 @@
+#include "../../precomp.h"
+
 // ----------------------------------------------------------------------------------------------------//
 // CAMERA CALIBRATION CODE FROM: https://docs.opencv.org/4.2.0/d4/d94/tutorial_camera_calibration.html //
 // ----------------------------------------------------------------------------------------------------//
 
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <ctime>
-#include <cstdio>
-
-#include <opencv2/core.hpp>
-#include <opencv2/core/utility.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/calib3d.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/videoio.hpp>
-#include <opencv2/highgui.hpp>
-
-using namespace cv;
-using namespace std;
-
-class Settings
-{
-public:
-    Settings() : goodInput(false) {}
-    enum Pattern { NOT_EXISTING, CHESSBOARD, CIRCLES_GRID, ASYMMETRIC_CIRCLES_GRID };
-    enum InputType { INVALID, CAMERA, VIDEO_FILE, IMAGE_LIST };
-
-    void write(FileStorage& fs) const                        //Write serialization for this class
-    {
-        fs << "{"
-            << "BoardSize_Width" << boardSize.width
-            << "BoardSize_Height" << boardSize.height
-            << "Square_Size" << squareSize
-            << "Calibrate_Pattern" << patternToUse
-            << "Calibrate_NrOfFrameToUse" << nrFrames
-            << "Calibrate_FixAspectRatio" << aspectRatio
-            << "Calibrate_AssumeZeroTangentialDistortion" << calibZeroTangentDist
-            << "Calibrate_FixPrincipalPointAtTheCenter" << calibFixPrincipalPoint
-
-            << "Write_DetectedFeaturePoints" << writePoints
-            << "Write_extrinsicParameters" << writeExtrinsics
-            << "Write_gridPoints" << writeGrid
-            << "Write_outputFileName" << outputFileName
-
-            << "Show_UndistortedImage" << showUndistorted
-
-            << "Input_FlipAroundHorizontalAxis" << flipVertical
-            << "Input_Delay" << delay
-            << "Input" << input
-            << "}";
-    }
-    void read(const FileNode& node)                          //Read serialization for this class
-    {
-        node["BoardSize_Width"] >> boardSize.width;
-        node["BoardSize_Height"] >> boardSize.height;
-        node["Calibrate_Pattern"] >> patternToUse;
-        node["Square_Size"] >> squareSize;
-        node["Calibrate_NrOfFrameToUse"] >> nrFrames;
-        node["Calibrate_FixAspectRatio"] >> aspectRatio;
-        node["Write_DetectedFeaturePoints"] >> writePoints;
-        node["Write_extrinsicParameters"] >> writeExtrinsics;
-        node["Write_gridPoints"] >> writeGrid;
-        node["Write_outputFileName"] >> outputFileName;
-        node["Calibrate_AssumeZeroTangentialDistortion"] >> calibZeroTangentDist;
-        node["Calibrate_FixPrincipalPointAtTheCenter"] >> calibFixPrincipalPoint;
-        node["Calibrate_UseFisheyeModel"] >> useFisheye;
-        node["Input_FlipAroundHorizontalAxis"] >> flipVertical;
-        node["Show_UndistortedImage"] >> showUndistorted;
-        node["Input"] >> input;
-        node["Input_Delay"] >> delay;
-        node["Fix_K1"] >> fixK1;
-        node["Fix_K2"] >> fixK2;
-        node["Fix_K3"] >> fixK3;
-        node["Fix_K4"] >> fixK4;
-        node["Fix_K5"] >> fixK5;
-
-        validate();
-    }
-    void validate()
-    {
-        goodInput = true;
-        if (boardSize.width <= 0 || boardSize.height <= 0)
-        {
-            cerr << "Invalid Board size: " << boardSize.width << " " << boardSize.height << endl;
-            goodInput = false;
-        }
-        if (squareSize <= 10e-6)
-        {
-            cerr << "Invalid square size " << squareSize << endl;
-            goodInput = false;
-        }
-        if (nrFrames <= 0)
-        {
-            cerr << "Invalid number of frames " << nrFrames << endl;
-            goodInput = false;
-        }
-
-        if (input.empty())      // Check for valid input
-            inputType = INVALID;
-        else
-        {
-            if (input[0] >= '0' && input[0] <= '9')
-            {
-                stringstream ss(input);
-                ss >> cameraID;
-                inputType = CAMERA;
-            }
-            else
-            {
-                if (isListOfImages(input) && readStringList(input, imageList))
-                {
-                    inputType = IMAGE_LIST;
-                    nrFrames = (nrFrames < (int)imageList.size()) ? nrFrames : (int)imageList.size();
-                }
-                else
-                    inputType = VIDEO_FILE;
-            }
-            if (inputType == CAMERA)
-                inputCapture.open(cameraID);
-            if (inputType == VIDEO_FILE)
-                inputCapture.open(input);
-            if (inputType != IMAGE_LIST && !inputCapture.isOpened())
-                inputType = INVALID;
-        }
-        if (inputType == INVALID)
-        {
-            cerr << " Input does not exist: " << input;
-            goodInput = false;
-        }
-
-        flag = 0;
-        if (calibFixPrincipalPoint) flag |= CALIB_FIX_PRINCIPAL_POINT;
-        if (calibZeroTangentDist)   flag |= CALIB_ZERO_TANGENT_DIST;
-        if (aspectRatio)            flag |= CALIB_FIX_ASPECT_RATIO;
-        if (fixK1)                  flag |= CALIB_FIX_K1;
-        if (fixK2)                  flag |= CALIB_FIX_K2;
-        if (fixK3)                  flag |= CALIB_FIX_K3;
-        if (fixK4)                  flag |= CALIB_FIX_K4;
-        if (fixK5)                  flag |= CALIB_FIX_K5;
-
-        if (useFisheye) {
-            // the fisheye model has its own enum, so overwrite the flags
-            flag = fisheye::CALIB_FIX_SKEW | fisheye::CALIB_RECOMPUTE_EXTRINSIC;
-            if (fixK1)                   flag |= fisheye::CALIB_FIX_K1;
-            if (fixK2)                   flag |= fisheye::CALIB_FIX_K2;
-            if (fixK3)                   flag |= fisheye::CALIB_FIX_K3;
-            if (fixK4)                   flag |= fisheye::CALIB_FIX_K4;
-            if (calibFixPrincipalPoint) flag |= fisheye::CALIB_FIX_PRINCIPAL_POINT;
-        }
-
-        calibrationPattern = NOT_EXISTING;
-        if (!patternToUse.compare("CHESSBOARD")) calibrationPattern = CHESSBOARD;
-        if (!patternToUse.compare("CIRCLES_GRID")) calibrationPattern = CIRCLES_GRID;
-        if (!patternToUse.compare("ASYMMETRIC_CIRCLES_GRID")) calibrationPattern = ASYMMETRIC_CIRCLES_GRID;
-        if (calibrationPattern == NOT_EXISTING)
-        {
-            cerr << " Camera calibration mode does not exist: " << patternToUse << endl;
-            goodInput = false;
-        }
-        atImageList = 0;
-
-    }
-    Mat nextImage()
-    {
-        Mat result;
-        if (inputCapture.isOpened())
-        {
-            Mat view0;
-            inputCapture >> view0;
-            view0.copyTo(result);
-        }
-        else if (atImageList < imageList.size())
-            result = imread(imageList[atImageList++], IMREAD_COLOR);
-
-        return result;
-    }
-
-    static bool readStringList(const string& filename, vector<string>& l)
-    {
-        l.clear();
-        FileStorage fs(filename, FileStorage::READ);
-        if (!fs.isOpened())
-            return false;
-        FileNode n = fs.getFirstTopLevelNode();
-        if (n.type() != FileNode::SEQ)
-            return false;
-        FileNodeIterator it = n.begin(), it_end = n.end();
-        for (; it != it_end; ++it)
-            l.push_back((string)*it);
-        return true;
-    }
-
-    static bool isListOfImages(const string& filename)
-    {
-        string s(filename);
-        // Look for file extension
-        if (s.find(".xml") == string::npos && s.find(".yaml") == string::npos && s.find(".yml") == string::npos)
-            return false;
-        else
-            return true;
-    }
-public:
-    Size boardSize;              // The size of the board -> Number of items by width and height
-    Pattern calibrationPattern;  // One of the Chessboard, circles, or asymmetric circle pattern
-    float squareSize;            // The size of a square in your defined unit (point, millimeter,etc).
-    int nrFrames;                // The number of frames to use from the input for calibration
-    float aspectRatio;           // The aspect ratio
-    int delay;                   // In case of a video input
-    bool writePoints;            // Write detected feature points
-    bool writeExtrinsics;        // Write extrinsic parameters
-    bool writeGrid;              // Write refined 3D target grid points
-    bool calibZeroTangentDist;   // Assume zero tangential distortion
-    bool calibFixPrincipalPoint; // Fix the principal point at the center
-    bool flipVertical;           // Flip the captured images around the horizontal axis
-    string outputFileName;       // The name of the file where to write
-    bool showUndistorted;        // Show undistorted images after calibration
-    string input;                // The input ->
-    bool useFisheye;             // use fisheye camera model for calibration
-    bool fixK1;                  // fix K1 distortion coefficient
-    bool fixK2;                  // fix K2 distortion coefficient
-    bool fixK3;                  // fix K3 distortion coefficient
-    bool fixK4;                  // fix K4 distortion coefficient
-    bool fixK5;                  // fix K5 distortion coefficient
-
-    int cameraID;
-    vector<string> imageList;
-    size_t atImageList;
-    VideoCapture inputCapture;
-    InputType inputType;
-    bool goodInput;
-    int flag;
-
-private:
-    string patternToUse;
-
-
-};
-
-static inline void read(const FileNode& node, Settings& x, const Settings& default_value = Settings())
+static inline void read(const FileNode& node, CalibrationSettings& x, const CalibrationSettings& default_value = CalibrationSettings())
 {
     if (node.empty())
         x = default_value;
@@ -247,10 +14,10 @@ static inline void read(const FileNode& node, Settings& x, const Settings& defau
 
 enum { DETECTION = 0, CAPTURING = 1, CALIBRATED = 2 };
 
-bool runCalibrationAndSave(Settings& s, Size imageSize, Mat& cameraMatrix, Mat& distCoeffs,
-    vector<vector<Point2f> > imagePoints, float grid_width, bool release_object);
+//bool CameraCalibration::runCalibrationAndSave(CalibrationSettings& s, Size imageSize, Mat& cameraMatrix, Mat& distCoeffs,
+//    vector<vector<Point2f> > imagePoints, float grid_width, bool release_object);
 
-int main(int argc, char* argv[])
+int CameraCalibration::calibrate(int argc, char* argv[])
 {
     const String keys
         = "{help h usage ? |           | print this message            }"
@@ -274,7 +41,7 @@ int main(int argc, char* argv[])
     }
 
     //! [file_read]
-    Settings s;
+    CalibrationSettings s;
     const string inputSettingsFile = parser.get<string>(0);
     FileStorage fs(inputSettingsFile, FileStorage::READ); // Read the settings
 
@@ -310,7 +77,7 @@ int main(int argc, char* argv[])
     vector<vector<Point2f> > imagePoints;
     Mat cameraMatrix, distCoeffs;
     Size imageSize;
-    int mode = s.inputType == Settings::IMAGE_LIST ? CAPTURING : DETECTION;
+    int mode = s.inputType == CalibrationSettings::IMAGE_LIST ? CAPTURING : DETECTION;
     clock_t prevTimestamp = 0;
     const Scalar RED(0, 0, 255), GREEN(0, 255, 0);
     const char ESC_KEY = 27;
@@ -359,13 +126,13 @@ int main(int argc, char* argv[])
 
         switch (s.calibrationPattern) // Find feature points on the input format
         {
-        case Settings::CHESSBOARD:
+        case CalibrationSettings::CHESSBOARD:
             found = findChessboardCorners(view, s.boardSize, pointBuf, chessBoardFlags);
             break;
-        case Settings::CIRCLES_GRID:
+        case CalibrationSettings::CIRCLES_GRID:
             found = findCirclesGrid(view, s.boardSize, pointBuf);
             break;
-        case Settings::ASYMMETRIC_CIRCLES_GRID:
+        case CalibrationSettings::ASYMMETRIC_CIRCLES_GRID:
             found = findCirclesGrid(view, s.boardSize, pointBuf, CALIB_CB_ASYMMETRIC_GRID);
             break;
         default:
@@ -377,7 +144,7 @@ int main(int argc, char* argv[])
         if (found)                // If done with success,
         {
             // improve the found corners' coordinate accuracy for chessboard
-            if (s.calibrationPattern == Settings::CHESSBOARD)
+            if (s.calibrationPattern == CalibrationSettings::CHESSBOARD)
             {
                 Mat viewGray;
                 cvtColor(view, viewGray, COLOR_BGR2GRAY);
@@ -395,6 +162,9 @@ int main(int argc, char* argv[])
 
             // Draw the corners.
             drawChessboardCorners(view, s.boardSize, Mat(pointBuf), found);
+        }
+        else {
+            s.atImageList;
         }
         //! [pattern_found]
         //----------------------------- Output Text ------------------------------------------------
@@ -455,7 +225,7 @@ int main(int argc, char* argv[])
 
     // -----------------------Show the undistorted image for the image list ------------------------
     //! [show_results]
-    if (s.inputType == Settings::IMAGE_LIST && s.showUndistorted && !cameraMatrix.empty())
+    if (s.inputType == CalibrationSettings::IMAGE_LIST && s.showUndistorted && !cameraMatrix.empty())
     {
         Mat view, rview, map1, map2;
 
@@ -493,7 +263,7 @@ int main(int argc, char* argv[])
 }
 
 //! [compute_errors]
-static double computeReprojectionErrors(const vector<vector<Point3f> >& objectPoints,
+double CameraCalibration::computeReprojectionErrors(const vector<vector<Point3f> >& objectPoints,
     const vector<vector<Point2f> >& imagePoints,
     const vector<Mat>& rvecs, const vector<Mat>& tvecs,
     const Mat& cameraMatrix, const Mat& distCoeffs,
@@ -527,21 +297,21 @@ static double computeReprojectionErrors(const vector<vector<Point3f> >& objectPo
 }
 //! [compute_errors]
 //! [board_corners]
-static void calcBoardCornerPositions(Size boardSize, float squareSize, vector<Point3f>& corners,
-    Settings::Pattern patternType /*= Settings::CHESSBOARD*/)
+void CameraCalibration::calcBoardCornerPositions(Size boardSize, float squareSize, vector<Point3f>& corners,
+    CalibrationSettings::Pattern patternType /*= Settings::CHESSBOARD*/)
 {
     corners.clear();
 
     switch (patternType)
     {
-    case Settings::CHESSBOARD:
-    case Settings::CIRCLES_GRID:
+    case CalibrationSettings::CHESSBOARD:
+    case CalibrationSettings::CIRCLES_GRID:
         for (int i = 0; i < boardSize.height; ++i)
             for (int j = 0; j < boardSize.width; ++j)
                 corners.push_back(Point3f(j * squareSize, i * squareSize, 0));
         break;
 
-    case Settings::ASYMMETRIC_CIRCLES_GRID:
+    case CalibrationSettings::ASYMMETRIC_CIRCLES_GRID:
         for (int i = 0; i < boardSize.height; i++)
             for (int j = 0; j < boardSize.width; j++)
                 corners.push_back(Point3f((2 * j + i % 2) * squareSize, i * squareSize, 0));
@@ -551,7 +321,7 @@ static void calcBoardCornerPositions(Size boardSize, float squareSize, vector<Po
     }
 }
 //! [board_corners]
-static bool runCalibration(Settings& s, Size& imageSize, Mat& cameraMatrix, Mat& distCoeffs,
+bool CameraCalibration::runCalibration(CalibrationSettings& s, Size& imageSize, Mat& cameraMatrix, Mat& distCoeffs,
     vector<vector<Point2f> > imagePoints, vector<Mat>& rvecs, vector<Mat>& tvecs,
     vector<float>& reprojErrs, double& totalAvgErr, vector<Point3f>& newObjPoints,
     float grid_width, bool release_object)
@@ -620,7 +390,7 @@ static bool runCalibration(Settings& s, Size& imageSize, Mat& cameraMatrix, Mat&
 }
 
 // Print camera parameters to the output file
-static void saveCameraParams(Settings& s, Size& imageSize, Mat& cameraMatrix, Mat& distCoeffs,
+void CameraCalibration::saveCameraParams(CalibrationSettings& s, Size& imageSize, Mat& cameraMatrix, Mat& distCoeffs,
     const vector<Mat>& rvecs, const vector<Mat>& tvecs,
     const vector<float>& reprojErrs, const vector<vector<Point2f> >& imagePoints,
     double totalAvgErr, const vector<Point3f>& newObjPoints)
@@ -740,7 +510,7 @@ static void saveCameraParams(Settings& s, Size& imageSize, Mat& cameraMatrix, Ma
 }
 
 //! [run_and_save]
-bool runCalibrationAndSave(Settings& s, Size imageSize, Mat& cameraMatrix, Mat& distCoeffs,
+bool CameraCalibration::runCalibrationAndSave(CalibrationSettings& s, Size imageSize, Mat& cameraMatrix, Mat& distCoeffs,
     vector<vector<Point2f> > imagePoints, float grid_width, bool release_object)
 {
     vector<Mat> rvecs, tvecs;
