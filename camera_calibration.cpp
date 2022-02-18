@@ -396,6 +396,10 @@ int main(int argc, char* argv[])
             // Draw the corners.
             drawChessboardCorners(view, s.boardSize, Mat(pointBuf), found);
         }
+        else
+        {
+            std::cout << "corners not found in image number " << s.atImageList << std::endl;
+        }
         //! [pattern_found]
         //----------------------------- Output Text ------------------------------------------------
         //! [output_text]
