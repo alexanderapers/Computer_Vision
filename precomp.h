@@ -32,3 +32,4 @@ using namespace std;
 // Calibration
 #include "src/calibration/calibration_settings.h"
 #include "src/calibration/camera_calibration.h"
+#include "src/xml_editing/XMLData.h"
