@@ -31,6 +31,7 @@ int main(int argc, char** argv)
     FileNodeIterator it = fs["images"].begin(), it_end = fs["images"].end();
 
     Log("\nCalibrating with n-1 images... \n");
+    vector<string> toKeep;
 
     // for image in calibimages run calibration without this images
     for (; it != it_end; ++it)
@@ -46,7 +47,26 @@ int main(int argc, char** argv)
         {
             Log("Removing this image might improve calibration: " + (string)*it);
         }
+        else
+        {
+            toKeep.push_back((string)*it);
+        }
     }
+
+
+    const char* const delim = "\n";
+    std::ostringstream imploded;
+    std::copy(toKeep.begin(), toKeep.end(),
+        std::ostream_iterator<std::string>(imploded, delim));
+
+    Log("\nCalibrating with outliers removed");
+
+    XMLData new_images("./", "n-1_images.xml", true);
+    new_images.writeValue("images", imploded.str());
+    new_images.save();
+
+    CameraCalibration::calibrate(argc, argv, "n-1_default.xml");
+
 
     return 0;
 }
