@@ -18,6 +18,14 @@ public:
         }
 	}
 
+    XMLData(const string path, const string filename, XMLData file_to_copy) {
+        this->path = path;
+        this->filename = filename;
+        string filepath = getFilePath();
+        content = getXMLContent(file_to_copy.getFilePath());
+        createXMLFile(filepath, content);
+    }
+
     /// <summary>
     /// Adds a tag to the XML file. Optionally adds the tag between enclosing parent tags.
     /// </summary>
@@ -78,9 +86,21 @@ public:
         string end = content.substr(closingPosition, content.size());
         content = std::format("{0}{1}{2}", start, value, end);
     }
+
     void save() {
         createXMLFile(getFilePath(), content);
     }
+
+    //removeTextFromTag(string xmlTagName, string value)
+    //{
+    //    string openingTag = std::format("<{}>", xmlTagName);
+    //    string closingTag = std::format("</{}>", xmlTagName);
+    //    size_t openingPosition = content.find(openingTag);
+    //    size_t closingPosition = content.find(closingTag);
+    //    size_t contentPosition = openingPosition + openingTag.size();
+
+    //}
+
 
 private:
     string path;

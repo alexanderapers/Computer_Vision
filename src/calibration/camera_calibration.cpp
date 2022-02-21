@@ -17,7 +17,7 @@ enum { DETECTION = 0, CAPTURING = 1, CALIBRATED = 2 };
 //bool CameraCalibration::runCalibrationAndSave(CalibrationSettings& s, Size imageSize, Mat& cameraMatrix, Mat& distCoeffs,
 //    vector<vector<Point2f> > imagePoints, float grid_width, bool release_object);
 
-int CameraCalibration::calibrate(int argc, char* argv[])
+int CameraCalibration::calibrate(int argc, char* argv[], const string default_file)
 {
     const String keys
         = "{help h usage ? |           | print this message            }"
@@ -42,8 +42,10 @@ int CameraCalibration::calibrate(int argc, char* argv[])
 
     //! [file_read]
     CalibrationSettings s;
-    const string inputSettingsFile = parser.get<string>(0);
+    //const string inputSettingsFile = parser.get<string>(0);
+    const string inputSettingsFile = default_file;
     FileStorage fs(inputSettingsFile, FileStorage::READ); // Read the settings
+
 
     if (!fs.isOpened())
     {

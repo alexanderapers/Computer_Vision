@@ -6,7 +6,7 @@
 
 static class CameraCalibration {
 public:
-	static int calibrate(int argc, char* argv[]);
+	static int calibrate(int argc, char* argv[], string default_file);
 private:
 	static double computeReprojectionErrors(const vector<vector<Point3f> >& objectPoints,
 		const vector<vector<Point2f> >& imagePoints,
