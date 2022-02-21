@@ -46,7 +46,6 @@ int CameraCalibration::calibrate(int argc, char* argv[], const string default_fi
     const string inputSettingsFile = default_file;
     FileStorage fs(inputSettingsFile, FileStorage::READ); // Read the settings
 
-
     if (!fs.isOpened())
     {
         cout << "Could not open the configuration file: \"" << inputSettingsFile << "\"" << endl;

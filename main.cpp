@@ -4,19 +4,101 @@
 //
 #include "precomp.h"
 
-//double getAvgReprojectionError(string pathtooutfile);
-//void removeCalibrationImage(string pathtoimagesfile, string fileToRemove);
-//void adjustDefaultXML(const string pathtodefault);
-//void createXMLFile(const string filename, const string content);
-//string readContentFromFile(string pathttofile);
 void adjustXMLFiles(XMLData& default_file, XMLData& images_file, string file_To_Leave);
 double getAvgReprojectionError(XMLData& camera_output);
+void fullCalibration(int argc, char** argv);
+tuple<Mat, Mat, Mat> getParameters();
 
+static inline void read(const FileNode& node, CalibrationSettings& x, const CalibrationSettings& default_value = CalibrationSettings())
+{
+    if (node.empty())
+        x = default_value;
+    else
+        x.read(node);
+}
 
 int main(int argc, char** argv)
 {
-    //ScreenCapture::streamWebcamFeed();
+    if (string(argv[1]) == "screencapture")
+    { 
+        ScreenCapture::streamWebcamFeed();
+    }
 
+    if (string(argv[1]) == "offline")
+    { 
+        fullCalibration(argc, argv);
+    }
+
+    if (string(argv[1]) == "online")
+    {
+        CalibrationSettings s;
+        FileStorage fs("default.xml", FileStorage::READ);
+
+        fs["Settings"] >> s;
+        fs.release();
+
+        // for frame in framestream
+        Mat view = s.nextImage();
+
+        tuple<Mat, Mat, Mat> parameters = getParameters();
+        auto [camera_matrix, extrinsic_parameters, distCoeffs] = parameters;
+        
+        vector<Point3f> points;
+        points.push_back(Point3d(0, 0, 0));
+        points.push_back(Point3d(1, 0, 0));
+        points.push_back(Point3d(0, 1, 0));
+        points.push_back(Point3d(0, 0, 1));
+        points.push_back(Point3d(1, 1, 0));
+        points.push_back(Point3d(0, 1, 1));
+        points.push_back(Point3d(1, 0, 1));
+        points.push_back(Point3d(1, 1, 1));
+
+        Mat p(points);
+        // I think something is off with the size of the matrices
+        cout << p.channels() << endl; // it seems to make 3 channels instead of a 8x3 matrix
+        cout << p.size().height << " " << p.size().width << endl;
+
+        vector<Point2d> pointBuf;
+        Mat rvec, tvec;
+        bool found = findChessboardCorners(view, s.boardSize, pointBuf);
+        Mat i(pointBuf);
+        if (found)
+        {
+            solvePnP(p, i, camera_matrix, distCoeffs, rvec, tvec);
+        }
+
+        cout << rvec << endl;
+        cout << tvec << endl;
+
+    }
+
+    return 0;
+}
+
+tuple<Mat, Mat, Mat> getParameters()
+{
+    FileStorage fs("out_camera_data.xml", FileStorage::READ);
+    
+    // get camera matrix
+    Mat camera_matrix;
+    fs["camera_matrix"] >> camera_matrix;
+
+    // get extrinsic parameters
+    Mat extrinsic_parameters;
+    fs["extrinsic_parameters"] >> extrinsic_parameters;
+
+    // get distortion coefficients
+    Mat distCoeffs;
+    fs["distortion_coefficients"] >> distCoeffs;
+
+    fs.release();
+
+    tuple<Mat, Mat, Mat> return_tuple(camera_matrix, extrinsic_parameters, distCoeffs);
+    return return_tuple;
+}
+
+void fullCalibration(int argc, char** argv)
+{
     // get recalibration error of using all images
     Log("Calibrating with all images... \n");
     CameraCalibration::calibrate(argc, argv, "default.xml");
@@ -39,7 +121,7 @@ int main(int argc, char** argv)
         adjustXMLFiles(default_file, images_file, (string)*it);
 
         CameraCalibration::calibrate(argc, argv, "n-1_default.xml");
-      
+
         XMLData camera_output = XMLData::XMLData("./", "out_camera_data.xml", true);
         double new_error = getAvgReprojectionError(camera_output);
 
@@ -66,9 +148,6 @@ int main(int argc, char** argv)
     new_images.save();
 
     CameraCalibration::calibrate(argc, argv, "n-1_default.xml");
-
-
-    return 0;
 }
 
 void adjustXMLFiles(XMLData& default_file, XMLData& images_file, string file_To_Leave)
