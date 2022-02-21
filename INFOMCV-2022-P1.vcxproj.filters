@@ -47,5 +47,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\xml_editing\XMLData.h" />
+    <ClInclude Include="src\utils\utils.h" />
   </ItemGroup>
 </Project>

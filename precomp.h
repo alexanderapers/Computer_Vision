@@ -25,6 +25,7 @@ using namespace std;
 // ----------------------------------------------------------------------------------
 // PROJECT SOURCE HEADERS
 // ----------------------------------------------------------------------------------
+#include "src/utils/utils.h"
 
 // Screen capturing
 #include "src/screen_capture/screen_capture.h"
@@ -33,3 +34,4 @@ using namespace std;
 #include "src/calibration/calibration_settings.h"
 #include "src/calibration/camera_calibration.h"
 #include "src/xml_editing/XMLData.h"
+
