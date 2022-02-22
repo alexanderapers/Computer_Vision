@@ -8,6 +8,7 @@ void adjustXMLFiles(XMLData& default_file, XMLData& images_file, string file_To_
 double getAvgReprojectionError(XMLData& camera_output);
 void fullCalibration(int argc, char** argv);
 tuple<Mat, Mat, Mat> getParameters();
+void projectionFromKRt(Mat K, Mat R, Mat t, Mat& P);
 
 static inline void read(const FileNode& node, CalibrationSettings& x, const CalibrationSettings& default_value = CalibrationSettings())
 {
@@ -40,40 +41,53 @@ int main(int argc, char** argv)
         // for frame in framestream
         Mat view = s.nextImage();
 
+
         tuple<Mat, Mat, Mat> parameters = getParameters();
         auto [camera_matrix, extrinsic_parameters, distCoeffs] = parameters;
         
-        vector<Point3f> points;
-        points.push_back(Point3d(0, 0, 0));
-        points.push_back(Point3d(1, 0, 0));
-        points.push_back(Point3d(0, 1, 0));
-        points.push_back(Point3d(0, 0, 1));
-        points.push_back(Point3d(1, 1, 0));
-        points.push_back(Point3d(0, 1, 1));
-        points.push_back(Point3d(1, 0, 1));
-        points.push_back(Point3d(1, 1, 1));
+        vector<Point2d> imagePoints;
+        int chessBoardFlags = (CALIB_CB_ADAPTIVE_THRESH | CALIB_CB_NORMALIZE_IMAGE) | CALIB_CB_FAST_CHECK;
+        bool found = findChessboardCorners(view, s.boardSize, imagePoints, chessBoardFlags);
 
-        Mat p(points);
-        // I think something is off with the size of the matrices
-        cout << p.channels() << endl; // it seems to make 3 channels instead of a 8x3 matrix
-        cout << p.size().height << " " << p.size().width << endl;
-
-        vector<Point2d> pointBuf;
+        float grid_width = s.squareSize * (s.boardSize.width - 1);
+        vector<vector<Point3f> > objectPoints(1);
+        CameraCalibration::calcBoardCornerPositions(s.boardSize, s.squareSize, objectPoints[0], s.calibrationPattern);
+        objectPoints[0][s.boardSize.width - 1].x = objectPoints[0][0].x + grid_width;
+        vector<Point3f> newObjPoints = objectPoints[0];
+        objectPoints.resize(imagePoints.size(), objectPoints[0]);
         Mat rvec, tvec;
-        bool found = findChessboardCorners(view, s.boardSize, pointBuf);
-        Mat i(pointBuf);
+
         if (found)
         {
-            solvePnP(p, i, camera_matrix, distCoeffs, rvec, tvec);
+            solvePnP(newObjPoints, imagePoints, camera_matrix, distCoeffs, rvec, tvec);
         }
 
-        cout << rvec << endl;
-        cout << tvec << endl;
+        Mat rotation;
+        Rodrigues(rvec, rotation);
+
+        Mat P = Mat();
+        projectionFromKRt(camera_matrix, rotation, tvec, P);
+        cout << P << endl;
 
     }
 
     return 0;
 }
+
+/// <summary>
+/// projectionFromKRT()
+/// https://github.com/opencv/opencv_contrib/blob/4.x/modules/sfm/src/projection.cpp
+/// </summary>
+/// <param name="K">camera matrix</param>
+/// <param name="R">rotation matrix</param>
+/// <param name="t">translation vector</param>
+/// <param name="P">projection matrix</param>
+void projectionFromKRt(Mat K, Mat R, Mat t, Mat& P)
+{
+    P.create(3, 4, 1);
+    hconcat(K * R, K * t, P);
+}
+
 
 tuple<Mat, Mat, Mat> getParameters()
 {

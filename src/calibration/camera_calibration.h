@@ -7,6 +7,8 @@
 static class CameraCalibration {
 public:
 	static int calibrate(int argc, char* argv[], string default_file);
+	static void calcBoardCornerPositions(Size boardSize, float squareSize, vector<Point3f>& corners,
+		CalibrationSettings::Pattern patternType /*= Settings::CHESSBOARD*/);
 private:
 	static double computeReprojectionErrors(const vector<vector<Point3f> >& objectPoints,
 		const vector<vector<Point2f> >& imagePoints,
@@ -14,8 +16,6 @@ private:
 		const Mat& cameraMatrix, const Mat& distCoeffs,
 		vector<float>& perViewErrors, bool fisheye);
 
-	static void calcBoardCornerPositions(Size boardSize, float squareSize, vector<Point3f>& corners,
-		CalibrationSettings::Pattern patternType /*= Settings::CHESSBOARD*/);
 
 	static bool runCalibration(CalibrationSettings& s, Size& imageSize, Mat& cameraMatrix, Mat& distCoeffs,
 		vector<vector<Point2f> > imagePoints, vector<Mat>& rvecs, vector<Mat>& tvecs,
