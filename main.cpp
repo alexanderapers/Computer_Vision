@@ -8,7 +8,7 @@ void adjustXMLFiles(XMLData& default_file, XMLData& images_file, string file_To_
 double getAvgReprojectionError(XMLData& camera_output);
 void fullCalibration(int argc, char** argv);
 tuple<Mat, Mat, Mat> getParameters();
-void projectionFromKRt(Mat K, Mat R, Mat t, Mat& P);
+//void projectionFromKRt(Mat K, Mat R, Mat t, Mat& P);
 
 static inline void read(const FileNode& node, CalibrationSettings& x, const CalibrationSettings& default_value = CalibrationSettings())
 {
@@ -40,6 +40,7 @@ int main(int argc, char** argv)
 
         // for frame in framestream
         Mat view = s.nextImage();
+        Mat view2 = s.nextImage();
 
 
         tuple<Mat, Mat, Mat> parameters = getParameters();
@@ -47,7 +48,7 @@ int main(int argc, char** argv)
         
         vector<Point2d> imagePoints;
         int chessBoardFlags = (CALIB_CB_ADAPTIVE_THRESH | CALIB_CB_NORMALIZE_IMAGE) | CALIB_CB_FAST_CHECK;
-        bool found = findChessboardCorners(view, s.boardSize, imagePoints, chessBoardFlags);
+        bool found = findChessboardCorners(view2, s.boardSize, imagePoints, chessBoardFlags);
 
         float grid_width = s.squareSize * (s.boardSize.width - 1);
         vector<vector<Point3f> > objectPoints(1);
@@ -62,31 +63,38 @@ int main(int argc, char** argv)
             solvePnP(newObjPoints, imagePoints, camera_matrix, distCoeffs, rvec, tvec);
         }
 
-        Mat rotation;
-        Rodrigues(rvec, rotation);
+        //Mat rotation;
+        //Rodrigues(rvec, rotation);
 
-        Mat P = Mat();
-        projectionFromKRt(camera_matrix, rotation, tvec, P);
-        cout << P << endl;
+        //Mat P;
+        //projectionFromKRt(camera_matrix, rotation, tvec, P);
+        
+        //Mat testPoints;
+        
+        //Mat output;
+        //cv::projectPoints(testPoints, rvec, tvec, camera_matrix, distCoeffs, output);
+        cv::drawFrameAxes(view2, camera_matrix, distCoeffs, rvec, tvec, 100);
+        imshow("view", view2);
+        waitKey(100000);
 
     }
 
     return 0;
 }
 
-/// <summary>
-/// projectionFromKRT()
-/// https://github.com/opencv/opencv_contrib/blob/4.x/modules/sfm/src/projection.cpp
-/// </summary>
-/// <param name="K">camera matrix</param>
-/// <param name="R">rotation matrix</param>
-/// <param name="t">translation vector</param>
-/// <param name="P">projection matrix</param>
-void projectionFromKRt(Mat K, Mat R, Mat t, Mat& P)
-{
-    P.create(3, 4, 1);
-    hconcat(K * R, K * t, P);
-}
+///// <summary>
+///// projectionFromKRT()
+///// https://github.com/opencv/opencv_contrib/blob/4.x/modules/sfm/src/projection.cpp
+///// </summary>
+///// <param name="K">camera matrix</param>
+///// <param name="R">rotation matrix</param>
+///// <param name="t">translation vector</param>
+///// <param name="P">projection matrix</param>
+//void projectionFromKRt(Mat K, Mat R, Mat t, Mat& P)
+//{
+//    P.create(3, 4, 1);
+//    hconcat(K * R, K * t, P);
+//}
 
 
 tuple<Mat, Mat, Mat> getParameters()
