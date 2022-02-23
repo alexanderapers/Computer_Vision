@@ -7,6 +7,9 @@
 void adjustXMLFiles(XMLData& default_file, XMLData& images_file, string file_To_Leave);
 double getAvgReprojectionError(XMLData& camera_output);
 void fullCalibration(int argc, char** argv);
+void drawViewAxes(Mat view, CalibrationSettings s, Mat rvec, Mat tvec, Mat camera_matrix, Mat distCoeffs);
+void drawCube(Mat view, CalibrationSettings s, Mat rvec, Mat tvec, Mat camera_matrix, Mat distCoeffs);
+
 tuple<Mat, Mat, Mat> getParameters();
 //void projectionFromKRt(Mat K, Mat R, Mat t, Mat& P);
 
@@ -38,17 +41,71 @@ int main(int argc, char** argv)
         fs["Settings"] >> s;
         fs.release();
 
-        // for frame in framestream
-        Mat view = s.nextImage();
-        Mat view2 = s.nextImage();
+        VideoCapture videoCapture(0);
 
+        if (!videoCapture.isOpened())
+        {
+            std::cout << "Unable to connect to webcam" << std::endl;
+            return -1;
+        }
 
         tuple<Mat, Mat, Mat> parameters = getParameters();
-        auto [camera_matrix, extrinsic_parameters, distCoeffs] = parameters;
-        
+        auto [camera_matrix, extrinsic_parameters /* <-- We don't need these yet*/, distCoeffs] = parameters;
+
+        bool drawAxes = false;
+
+        while (true)
+        {
+            Mat frame;
+            videoCapture >> frame;
+            if (frame.empty()) {
+                break;
+            };
+            //imshow("View", frame);
+            // press spacebar for screenshot
+            if (GetAsyncKeyState(32))
+            {
+                drawAxes = !drawAxes;
+            }
+
+            vector<Point2d> imagePoints;
+            int chessBoardFlags = (CALIB_CB_ADAPTIVE_THRESH | CALIB_CB_NORMALIZE_IMAGE) | CALIB_CB_FAST_CHECK;
+            bool found = findChessboardCorners(frame, s.boardSize, imagePoints, chessBoardFlags);
+
+            if (found)
+            {
+                float grid_width = s.squareSize * (s.boardSize.width - 1);
+                vector<vector<Point3f> > objectPoints(1);
+                CameraCalibration::calcBoardCornerPositions(s.boardSize, s.squareSize, objectPoints[0], s.calibrationPattern);
+                objectPoints[0][s.boardSize.width - 1].x = objectPoints[0][0].x + grid_width;
+                vector<Point3f> newObjPoints = objectPoints[0];
+                objectPoints.resize(imagePoints.size(), objectPoints[0]);
+                Mat rvec, tvec;
+                solvePnPRansac(newObjPoints, imagePoints, camera_matrix, distCoeffs, rvec, tvec);
+                if (drawAxes) {
+                    drawViewAxes(frame, s, rvec, tvec, camera_matrix, distCoeffs);
+                }
+                else {
+                    drawCube(frame, s, rvec, tvec, camera_matrix, distCoeffs);
+                }
+            }
+            imshow("View", frame);
+            if (waitKey(10) == 27) break;
+        }
+
+        videoCapture.release();
+
+
+        // for frame in framestream
+        Mat view = s.nextImage();
+        Mat view2 = view.clone();
+        //Mat view2 = s.nextImage();
+
+
+
         vector<Point2d> imagePoints;
         int chessBoardFlags = (CALIB_CB_ADAPTIVE_THRESH | CALIB_CB_NORMALIZE_IMAGE) | CALIB_CB_FAST_CHECK;
-        bool found = findChessboardCorners(view2, s.boardSize, imagePoints, chessBoardFlags);
+        bool found = findChessboardCorners(view, s.boardSize, imagePoints, chessBoardFlags);
 
         float grid_width = s.squareSize * (s.boardSize.width - 1);
         vector<vector<Point3f> > objectPoints(1);
@@ -63,6 +120,7 @@ int main(int argc, char** argv)
             solvePnP(newObjPoints, imagePoints, camera_matrix, distCoeffs, rvec, tvec);
         }
 
+
         //Mat rotation;
         //Rodrigues(rvec, rotation);
 
@@ -73,13 +131,108 @@ int main(int argc, char** argv)
         
         //Mat output;
         //cv::projectPoints(testPoints, rvec, tvec, camera_matrix, distCoeffs, output);
-        cv::drawFrameAxes(view2, camera_matrix, distCoeffs, rvec, tvec, 100);
-        imshow("view", view2);
+        //cv::drawFrameAxes(view2, camera_matrix, distCoeffs, rvec, tvec, 100);
+        drawViewAxes(view, s, rvec, tvec, camera_matrix, distCoeffs);
+        imshow("View", view);
         waitKey(100000);
-
+        drawCube(view2, s, rvec, tvec, camera_matrix, distCoeffs);
+        imshow("View", view2);
+        waitKey(100000);
     }
 
     return 0;
+}
+
+void drawViewAxes(Mat view, CalibrationSettings s, Mat rvec, Mat tvec, Mat camera_matrix, Mat distCoeffs) {
+    // Origin (0,0,0)
+    // X axis (0,0,0)->(3,0,0)
+    // Y axis (0,0,0)->(0,3,0)
+    // Z axis (0,0,0)->(0,0,-3)
+    vector<Point3d> axes = vector<Point3d>{ Point3d(0,0,0), Point3d(3,0,0), Point3d(0,3,0), Point3d(0,0,-3) };
+    Mat axesPoints = s.squareSize * Mat(axes);
+    vector<Point2d> axesImagePoints;
+    projectPoints(axesPoints, rvec, tvec, camera_matrix, distCoeffs, axesImagePoints);
+
+    cv::arrowedLine(view, axesImagePoints[0], axesImagePoints[1], Scalar(255, 0, 0), 3);
+    cv::arrowedLine(view, axesImagePoints[0], axesImagePoints[2], Scalar(0, 255, 0), 3);
+    cv::arrowedLine(view, axesImagePoints[0], axesImagePoints[3], Scalar(0, 0, 255), 3);
+}
+
+typedef std::tuple<float, vector<Point>, Scalar> face_data;
+inline bool comparator(const face_data& l, const face_data& r)
+{
+    return get<0>(l) < get<0>(r);
+}
+
+/// <summary>
+/// Draws a cube out of filled polygons.
+/// </summary>
+/// <param name="view"></param>
+/// <param name="s"></param>
+/// <param name="rvec"></param>
+/// <param name="tvec"></param>
+/// <param name="camera_matrix"></param>
+/// <param name="distCoeffs"></param>
+void drawCube(Mat view, CalibrationSettings s, Mat rvec, Mat tvec, Mat camera_matrix, Mat distCoeffs) {
+    vector<Point3d> cube = vector<Point3d>{
+    Point3d(0,0,0), Point3d(3,0,0), Point3d(0,3,0), Point3d(0,0,-3),
+    Point3d(3,3,0), Point3d(0,3,-3), Point3d(3,0,-3), Point3d(3,3,-3) };
+    Mat cube_points = s.squareSize * Mat(cube);
+    vector<Point2d> cube_image_points;
+    projectPoints(cube_points, rvec, tvec, camera_matrix, distCoeffs, cube_image_points);
+
+    vector<Point> bottom = { cube_image_points[0], cube_image_points[1], cube_image_points[4], cube_image_points[2] };
+    vector<Point> top = { cube_image_points[3], cube_image_points[5], cube_image_points[7], cube_image_points[6] };
+    vector<Point> back = { cube_image_points[0], cube_image_points[1], cube_image_points[6], cube_image_points[3] };
+    vector<Point> front = { cube_image_points[4], cube_image_points[2], cube_image_points[5], cube_image_points[7] };
+    vector<Point> left = { cube_image_points[2], cube_image_points[0], cube_image_points[3], cube_image_points[5] };
+    vector<Point> right = { cube_image_points[1], cube_image_points[4], cube_image_points[7], cube_image_points[6] };
+
+    Mat rotation;
+    Rodrigues(rvec, rotation);
+    Mat transformed_cam_pos = -rotation.t() * tvec;
+
+    Point3d point = Point3d(transformed_cam_pos);
+
+    Point3d bottom_center = (cube[0] + cube[1] + cube[4] + cube[2]) / 4;
+    Point3d top_center = (cube[3] + cube[5] + cube[7] + cube[6]) / 4;
+    Point3d back_center = (cube[0] + cube[1] + cube[6] + cube[3]) / 4;
+    Point3d front_center = (cube[4] + cube[2] + cube[5] + cube[7]) / 4;
+    Point3d left_center = (cube[2] + cube[0] + cube[3] + cube[5]) / 4;
+    Point3d right_center = (cube[1] + cube[4] + cube[7] + cube[6]) / 4;
+    
+    vector<face_data> sorted_face_distances = {
+        {cv::norm(point - bottom_center), bottom, Scalar(0, 255, 255)},
+        {cv::norm(point - top_center), top, Scalar(255, 0, 0)},
+        {cv::norm(point - back_center), back, Scalar(0, 255, 0)},
+        {cv::norm(point - front_center), front, Scalar(255, 255, 0)},
+        {cv::norm(point - left_center), left, Scalar(255, 0, 255)},
+        {cv::norm(point - right_center), right, Scalar(0, 0, 255)},
+    };
+
+    std::sort(sorted_face_distances.rbegin(), sorted_face_distances.rend(), comparator);
+
+    for (face_data face_d : sorted_face_distances) {
+        cout << get<2>(face_d) << get<0>(face_d) << endl;
+        fillPoly(view, get<1>(face_d), get<2>(face_d));
+    }
+
+    // Wireframe
+    //cv::line(view, cube_image_points[0], cube_image_points[1], Scalar(255, 0, 0), 2);
+    //cv::line(view, cube_image_points[1], cube_image_points[4], Scalar(255, 0, 0), 2);
+    //cv::line(view, cube_image_points[4], cube_image_points[2], Scalar(255, 0, 0), 2);
+    //cv::line(view, cube_image_points[2], cube_image_points[0], Scalar(255, 0, 0), 2);
+
+
+    //cv::line(view, cube_image_points[0], cube_image_points[3], Scalar(0, 0, 255), 2);
+    //cv::line(view, cube_image_points[1], cube_image_points[6], Scalar(0, 0, 255), 2);
+    //cv::line(view, cube_image_points[4], cube_image_points[7], Scalar(0, 0, 255), 2);
+    //cv::line(view, cube_image_points[2], cube_image_points[5], Scalar(0, 0, 255), 2);
+
+    //cv::line(view, cube_image_points[3], cube_image_points[5], Scalar(0, 255, 0), 2);
+    //cv::line(view, cube_image_points[5], cube_image_points[7], Scalar(0, 255, 0), 2);
+    //cv::line(view, cube_image_points[7], cube_image_points[6], Scalar(0, 255, 0), 2);
+    //cv::line(view, cube_image_points[6], cube_image_points[3], Scalar(0, 255, 0), 2);
 }
 
 ///// <summary>
