@@ -13,6 +13,9 @@ void drawCube(Mat view, CalibrationSettings s, Mat rvec, Mat tvec, Mat camera_ma
 tuple<Mat, Mat, Mat> getParameters();
 //void projectionFromKRt(Mat K, Mat R, Mat t, Mat& P);
 
+/// <summary>
+/// Reads the calibration settings.
+/// </summary>
 static inline void read(const FileNode& node, CalibrationSettings& x, const CalibrationSettings& default_value = CalibrationSettings())
 {
     if (node.empty())
@@ -21,6 +24,12 @@ static inline void read(const FileNode& node, CalibrationSettings& x, const Cali
         x.read(node);
 }
 
+/// <summary>
+/// Main function, executes the program. Can take three different arguments: 
+/// "screencapture": Allows you to take pictures using your camera. (Using spacebar.)
+/// "offline": Uses a list of pictures (manually defined in VID5.xml) to do calibration for your camera.
+/// "online": Shows the camera feed in realtime, and draws a 3D cube or axes onto a checkerboard. (Can be switched using spacebar.)
+/// </summary>
 int main(int argc, char** argv)
 {
     if (string(argv[1]) == "screencapture")
@@ -94,55 +103,20 @@ int main(int argc, char** argv)
         }
 
         videoCapture.release();
-
-
-        // for frame in framestream
-        Mat view = s.nextImage();
-        Mat view2 = view.clone();
-        //Mat view2 = s.nextImage();
-
-
-
-        vector<Point2d> imagePoints;
-        int chessBoardFlags = (CALIB_CB_ADAPTIVE_THRESH | CALIB_CB_NORMALIZE_IMAGE) | CALIB_CB_FAST_CHECK;
-        bool found = findChessboardCorners(view, s.boardSize, imagePoints, chessBoardFlags);
-
-        float grid_width = s.squareSize * (s.boardSize.width - 1);
-        vector<vector<Point3f> > objectPoints(1);
-        CameraCalibration::calcBoardCornerPositions(s.boardSize, s.squareSize, objectPoints[0], s.calibrationPattern);
-        objectPoints[0][s.boardSize.width - 1].x = objectPoints[0][0].x + grid_width;
-        vector<Point3f> newObjPoints = objectPoints[0];
-        objectPoints.resize(imagePoints.size(), objectPoints[0]);
-        Mat rvec, tvec;
-
-        if (found)
-        {
-            solvePnP(newObjPoints, imagePoints, camera_matrix, distCoeffs, rvec, tvec);
-        }
-
-
-        //Mat rotation;
-        //Rodrigues(rvec, rotation);
-
-        //Mat P;
-        //projectionFromKRt(camera_matrix, rotation, tvec, P);
-        
-        //Mat testPoints;
-        
-        //Mat output;
-        //cv::projectPoints(testPoints, rvec, tvec, camera_matrix, distCoeffs, output);
-        //cv::drawFrameAxes(view2, camera_matrix, distCoeffs, rvec, tvec, 100);
-        drawViewAxes(view, s, rvec, tvec, camera_matrix, distCoeffs);
-        imshow("View", view);
-        waitKey(100000);
-        drawCube(view2, s, rvec, tvec, camera_matrix, distCoeffs);
-        imshow("View", view2);
-        waitKey(100000);
     }
 
     return 0;
 }
 
+/// <summary>
+/// Draws three axes onto a view containing a checkerboard.
+/// </summary>
+/// <param name="view">The image to draw on.</param>
+/// <param name="s">The calibration settings.</param>
+/// <param name="rvec">The rotation vector.</param>
+/// <param name="tvec">The translation vector.</param>
+/// <param name="camera_matrix">The camera matrix.</param>
+/// <param name="distCoeffs">The distortion coefficients.</param>
 void drawViewAxes(Mat view, CalibrationSettings s, Mat rvec, Mat tvec, Mat camera_matrix, Mat distCoeffs) {
     // Origin (0,0,0)
     // X axis (0,0,0)->(3,0,0)
@@ -165,14 +139,14 @@ inline bool comparator(const face_data& l, const face_data& r)
 }
 
 /// <summary>
-/// Draws a cube out of filled polygons.
+/// Draws a cube out of filled polygons onto a view containing a checkerboard.
 /// </summary>
-/// <param name="view"></param>
-/// <param name="s"></param>
-/// <param name="rvec"></param>
-/// <param name="tvec"></param>
-/// <param name="camera_matrix"></param>
-/// <param name="distCoeffs"></param>
+/// <param name="view">The image to draw on.</param>
+/// <param name="s">The calibration settings.</param>
+/// <param name="rvec">The rotation vector.</param>
+/// <param name="tvec">The translation vector.</param>
+/// <param name="camera_matrix">The camera matrix.</param>
+/// <param name="distCoeffs">The distortion coefficients.</param>
 void drawCube(Mat view, CalibrationSettings s, Mat rvec, Mat tvec, Mat camera_matrix, Mat distCoeffs) {
     vector<Point3d> cube = vector<Point3d>{
     Point3d(0,0,0), Point3d(3,0,0), Point3d(0,3,0), Point3d(0,0,-3),
@@ -201,8 +175,9 @@ void drawCube(Mat view, CalibrationSettings s, Mat rvec, Mat tvec, Mat camera_ma
     Point3d left_center = (cube[2] + cube[0] + cube[3] + cube[5]) / 4;
     Point3d right_center = (cube[1] + cube[4] + cube[7] + cube[6]) / 4;
     
+    // Gather distances to face centers along with their respective image coordinates and color values.
     vector<face_data> sorted_face_distances = {
-        {cv::norm(point - bottom_center), bottom, Scalar(0, 255, 255)},
+        {cv::norm(point - bottom_center), bottom, Scalar(0, 255, 255)}, // The bottom face is yellow and will never be shown due to occlusion.
         {cv::norm(point - top_center), top, Scalar(255, 0, 0)},
         {cv::norm(point - back_center), back, Scalar(0, 255, 0)},
         {cv::norm(point - front_center), front, Scalar(255, 255, 0)},
@@ -210,6 +185,7 @@ void drawCube(Mat view, CalibrationSettings s, Mat rvec, Mat tvec, Mat camera_ma
         {cv::norm(point - right_center), right, Scalar(0, 0, 255)},
     };
 
+    // Sort the faces so that the least distant face is drawn last.
     std::sort(sorted_face_distances.rbegin(), sorted_face_distances.rend(), comparator);
 
     for (face_data face_d : sorted_face_distances) {
@@ -217,7 +193,7 @@ void drawCube(Mat view, CalibrationSettings s, Mat rvec, Mat tvec, Mat camera_ma
         fillPoly(view, get<1>(face_d), get<2>(face_d));
     }
 
-    // Wireframe
+    // Wireframe cube code
     //cv::line(view, cube_image_points[0], cube_image_points[1], Scalar(255, 0, 0), 2);
     //cv::line(view, cube_image_points[1], cube_image_points[4], Scalar(255, 0, 0), 2);
     //cv::line(view, cube_image_points[4], cube_image_points[2], Scalar(255, 0, 0), 2);
@@ -235,21 +211,14 @@ void drawCube(Mat view, CalibrationSettings s, Mat rvec, Mat tvec, Mat camera_ma
     //cv::line(view, cube_image_points[6], cube_image_points[3], Scalar(0, 255, 0), 2);
 }
 
-///// <summary>
-///// projectionFromKRT()
-///// https://github.com/opencv/opencv_contrib/blob/4.x/modules/sfm/src/projection.cpp
-///// </summary>
-///// <param name="K">camera matrix</param>
-///// <param name="R">rotation matrix</param>
-///// <param name="t">translation vector</param>
-///// <param name="P">projection matrix</param>
-//void projectionFromKRt(Mat K, Mat R, Mat t, Mat& P)
-//{
-//    P.create(3, 4, 1);
-//    hconcat(K * R, K * t, P);
-//}
-
-
+/// <summary>
+/// Gets the camera matrix, extrinsic parameters, and distortion coefficients from the calibration output.
+/// </summary>
+/// <returns>A tuple containing:
+/// 1: The camera matrix.
+/// 2: The extrinsic parameters.
+/// 3: The distortion coeficcients.
+/// </returns>
 tuple<Mat, Mat, Mat> getParameters()
 {
     FileStorage fs("out_camera_data.xml", FileStorage::READ);
@@ -272,9 +241,12 @@ tuple<Mat, Mat, Mat> getParameters()
     return return_tuple;
 }
 
+/// <summary>
+/// Runs a full camera calibration. First using all N images, then N-1 for each image. Then finally with N-rejected images.
+/// </summary>
 void fullCalibration(int argc, char** argv)
 {
-    // get recalibration error of using all images
+    // get reprojection error of using all images
     Log("Calibrating with all images... \n");
     CameraCalibration::calibrate(argc, argv, "default.xml");
     XMLData camera_output = XMLData::XMLData("./", "out_camera_data.xml", true);
@@ -325,6 +297,12 @@ void fullCalibration(int argc, char** argv)
     CameraCalibration::calibrate(argc, argv, "n-1_default.xml");
 }
 
+/// <summary>
+/// Adjusts the various xml files used during calibration.
+/// </summary>
+/// <param name="default_file">The default calibration settings file used by calibration.cpp.</param>
+/// <param name="images_file">The images file that the default file links to.</param>
+/// <param name="file_To_Leave">The image file path that needs to be left out for the next n-1 calibration run.</param>
 void adjustXMLFiles(XMLData& default_file, XMLData& images_file, string file_To_Leave)
 {
     XMLData new_default_file = XMLData("./", "n-1_default.xml", default_file);
@@ -353,6 +331,11 @@ void adjustXMLFiles(XMLData& default_file, XMLData& images_file, string file_To_
     new_images_file.save();
 }
 
+/// <summary>
+/// Returns the average reprojection error from the camera output.
+/// </summary>
+/// <param name="camera_output">The xml file containing the camera calibration output.</param>
+/// <returns></returns>
 double getAvgReprojectionError(XMLData& camera_output)
 {
     /* Reads the average reprojection error from an output camera data xml file
