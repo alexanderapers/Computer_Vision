@@ -1,11 +1,17 @@
 #pragma once
 #include "../../precomp.h"
 
+/// <summary>
+/// Logs a string input.
+/// </summary>
 inline void Log(String input)
 {
     cout << input << endl;
 }
 
+/// <summary>
+/// Returns the current date time in string format.
+/// </summary>
 inline String getCurrentDateTime()
 {
     time_t t = time(0);
