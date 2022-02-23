@@ -189,7 +189,6 @@ void drawCube(Mat view, CalibrationSettings s, Mat rvec, Mat tvec, Mat camera_ma
     std::sort(sorted_face_distances.rbegin(), sorted_face_distances.rend(), comparator);
 
     for (face_data face_d : sorted_face_distances) {
-        cout << get<2>(face_d) << get<0>(face_d) << endl;
         fillPoly(view, get<1>(face_d), get<2>(face_d));
     }
 
