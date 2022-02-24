@@ -26,6 +26,9 @@
     <ClCompile Include="src\screen_capture\screen_capture.cpp">
       <Filter>src\screen_capture</Filter>
     </ClCompile>
+    <ClCompile Include="src\xml_editing\XMLData.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\calibration\calibration_settings.h">
@@ -43,5 +46,7 @@
     <ClInclude Include="common.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\xml_editing\XMLData.h" />
+    <ClInclude Include="src\utils\utils.h" />
   </ItemGroup>
 </Project>
