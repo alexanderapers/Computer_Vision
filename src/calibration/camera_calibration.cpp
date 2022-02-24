@@ -17,7 +17,7 @@ enum { DETECTION = 0, CAPTURING = 1, CALIBRATED = 2 };
 //bool CameraCalibration::runCalibrationAndSave(CalibrationSettings& s, Size imageSize, Mat& cameraMatrix, Mat& distCoeffs,
 //    vector<vector<Point2f> > imagePoints, float grid_width, bool release_object);
 
-int CameraCalibration::calibrate(int argc, char* argv[])
+int CameraCalibration::calibrate(int argc, char* argv[], const string default_file)
 {
     const String keys
         = "{help h usage ? |           | print this message            }"
@@ -42,7 +42,8 @@ int CameraCalibration::calibrate(int argc, char* argv[])
 
     //! [file_read]
     CalibrationSettings s;
-    const string inputSettingsFile = parser.get<string>(0);
+    //const string inputSettingsFile = parser.get<string>(0);
+    const string inputSettingsFile = default_file;
     FileStorage fs(inputSettingsFile, FileStorage::READ); // Read the settings
 
     if (!fs.isOpened())
@@ -207,7 +208,8 @@ int CameraCalibration::calibrate(int argc, char* argv[])
         //! [output_undistorted]
         //------------------------------ Show image and check for input commands -------------------
         //! [await_input]
-        imshow("Image View", view);
+       
+        //Alex:// imshow("Image View", view);
         char key = (char)waitKey(s.inputCapture.isOpened() ? 50 : s.delay);
 
         if (key == ESC_KEY)
@@ -252,7 +254,7 @@ int CameraCalibration::calibrate(int argc, char* argv[])
             if (view.empty())
                 continue;
             remap(view, rview, map1, map2, INTER_LINEAR);
-            imshow("Image View", rview);
+            //Alex:// imshow("Image View", rview);
             char c = (char)waitKey();
             if (c == ESC_KEY || c == 'q' || c == 'Q')
                 break;
