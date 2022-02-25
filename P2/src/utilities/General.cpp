@@ -6,7 +6,7 @@
  */
 
 #include "General.h"
-
+#include <iostream>
 #include <fstream>
 
 using namespace std;
@@ -23,6 +23,8 @@ const string General::IntrinsicsFile       = "intrinsics.xml";
 const string General::CheckerboadCorners   = "boardcorners.xml";
 const string General::ConfigFile           = "config.xml";
 
+const string General::IntrinsicsVideo	   = "intrinsics.avi";
+
 /**
  * Linux/Windows friendly way to check if a file exists
  */
@@ -30,6 +32,11 @@ bool General::fexists(const std::string &filename)
 {
 	ifstream ifile(filename.c_str());
 	return ifile.is_open();
+}
+
+void General::log(const std::string &inp)
+{
+	std::cout << inp << std::endl;
 }
 
 } /* namespace nl_uu_science_gmt */

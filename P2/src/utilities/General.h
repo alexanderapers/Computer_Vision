@@ -37,6 +37,7 @@ class General
 public:
 	static const std::string CBConfigFile;
 	static const std::string IntrinsicsFile;
+	static const std::string IntrinsicsVideo;
 	static const std::string CalibrationVideo;
 	static const std::string CheckerboadVideo;
 	static const std::string CheckerboadCorners;
@@ -45,6 +46,7 @@ public:
 	static const std::string ConfigFile;
 
 	static bool fexists(const std::string &);
+	static void log(const std::string &);
 };
 
 } /* namespace nl_uu_science_gmt */

@@ -19,6 +19,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\utilities\General.cpp" />
     <ClCompile Include="src\VoxelReconstruction.cpp" />
+    <ClCompile Include="src\Video.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\controllers\arcball.h" />
@@ -28,6 +29,7 @@
     <ClInclude Include="src\controllers\Scene3DRenderer.h" />
     <ClInclude Include="src\utilities\General.h" />
     <ClInclude Include="src\VoxelReconstruction.h" />
+    <ClInclude Include="src\Video.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\..\..\Pictures\background.png" />
@@ -77,6 +79,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>opencv_world454d.lib;OpenGL32.lib;Glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
