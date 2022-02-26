@@ -47,6 +47,7 @@ public:
 
 	static bool fexists(const std::string &);
 	static void log(const std::string &);
+	static void writeIntrinsics(const std::string read_file_path, const std::string write_file_path);
 };
 
 } /* namespace nl_uu_science_gmt */

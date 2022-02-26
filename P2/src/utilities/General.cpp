@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 
+using namespace cv;
 using namespace std;
 
 namespace nl_uu_science_gmt
@@ -37,6 +38,19 @@ bool General::fexists(const std::string &filename)
 void General::log(const std::string &inp)
 {
 	std::cout << inp << std::endl;
+}
+
+void General::writeIntrinsics(const std::string read_file_path, const std::string write_file_path)
+{
+	FileStorage fs_read(read_file_path, FileStorage::READ);
+	Mat camera_matrix;
+	fs_read["camera_matrix"] >> camera_matrix;
+	Mat distortion_coeffs;
+	fs_read["distortion_coefficients"] >> distortion_coeffs;
+
+	FileStorage fs_write(write_file_path, FileStorage::WRITE);
+	fs_write << "CameraMatrix" << camera_matrix;
+	fs_write << "DistortionCoeffs" << distortion_coeffs;
 }
 
 } /* namespace nl_uu_science_gmt */
