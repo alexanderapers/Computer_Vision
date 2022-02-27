@@ -30,12 +30,9 @@ int main(
 	//	General::writeIntrinsics(input_file_path, output_file_path);
 	//}
 
-
-	
-
-	//VoxelReconstruction::showKeys();
-	//VoxelReconstruction vr("data" + std::string(PATH_SEP), 4);
-	//vr.run(argc, argv);
+	VoxelReconstruction::showKeys();
+	VoxelReconstruction vr("data" + std::string(PATH_SEP), 4);
+	vr.run(argc, argv);
 
 	return EXIT_SUCCESS;	
 }

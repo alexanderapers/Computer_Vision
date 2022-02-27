@@ -37,6 +37,7 @@
       <Filter>src\controllers</Filter>
     </ClCompile>
     <ClCompile Include="src\Video.cpp" />
+    <ClCompile Include="src\controllers\Grid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\VoxelReconstruction.h">
@@ -61,6 +62,7 @@
       <Filter>src\controllers</Filter>
     </ClInclude>
     <ClInclude Include="src\Video.h" />
+    <ClInclude Include="src\controllers\Grid.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\..\..\Pictures\background.png" />

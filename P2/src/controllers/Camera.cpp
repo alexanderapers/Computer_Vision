@@ -21,6 +21,7 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
+#include "Grid.h"
 
 #include "../utilities/General.h"
 
@@ -293,7 +294,8 @@ bool Camera::detExtrinsics(
 
 		cout << "Now mark the " << board_size.area() << " interior corners of the checkerboard" << endl;
 		Mat canvas;
-		while ((int) m_BoardCorners->size() < board_size.area())
+
+		while ((int)m_BoardCorners->size() < 4)
 		{
 			canvas = frame.clone();
 
@@ -319,6 +321,73 @@ bool Camera::detExtrinsics(
 
 			imshow(MAIN_WINDOW, canvas);
 		}
+		
+		// save the four True corners
+		vector<Point> four_Points = vector<Point>();
+		for (int i = 0; i < 4; i++)
+		{
+			four_Points.push_back(m_BoardCorners->at(i));
+		}
+
+		// wipe m_BoardCorners
+		m_BoardCorners->clear();
+
+		// fill with all actual corners
+		Mat final;
+		final = frame.clone();
+
+		for (int j = 0; j < 4; j++)
+		{
+			circle(final, four_Points.at(j), 4, Color_MAGENTA, 1, 8);
+			if (j > 0)
+				line(final, four_Points.at(j), four_Points.at(j - 1), Color_MAGENTA, 1, 8);
+			else
+				line(final, four_Points.at(j), four_Points.at(3), Color_MAGENTA, 1, 8);
+		}
+
+		Grid grid = Grid(four_Points, Size(cb_width, cb_height));
+		m_BoardCorners = grid.getAllPoints();
+
+		for (int i = 0; i < m_BoardCorners->size(); i++)
+		{
+			circle(final, m_BoardCorners->at(i), 4, Color_MAGENTA, 1, 8);
+		}
+
+		imshow(MAIN_WINDOW, final);
+		waitKey(10);
+
+
+		system("pause");
+
+
+		// edit this
+	/*	while ((int) m_BoardCorners->size() < board_size.area())
+		{
+			canvas = frame.clone();
+
+			if (!m_BoardCorners->empty())
+			{
+				for (size_t c = 0; c < m_BoardCorners->size(); c++)
+				{
+					circle(canvas, m_BoardCorners->at(c), 4, Color_MAGENTA, 1, 8);
+					if (c > 0)
+						line(canvas, m_BoardCorners->at(c), m_BoardCorners->at(c - 1), Color_MAGENTA, 1, 8);
+				}
+			}
+
+			int key = waitKey(10);
+			if (key == 'q' || key == 'Q')
+			{
+				return false;
+			}
+			else if (key == 'c' || key == 'C')
+			{
+				m_BoardCorners->pop_back();
+			}
+
+			imshow(MAIN_WINDOW, canvas);
+		}*/
+		//
 
 		assert((int ) m_BoardCorners->size() == board_size.area());
 		cout << "Marking finished!" << endl;
