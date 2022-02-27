@@ -350,15 +350,14 @@ bool Camera::detExtrinsics(
 
 		for (int i = 0; i < m_BoardCorners->size(); i++)
 		{
-			circle(final, m_BoardCorners->at(i), 4, Color_MAGENTA, 1, 8);
+			circle(final, m_BoardCorners->at(i), 1, Color_MAGENTA, 1, 8);
+			if (i > 0)
+				line(final, m_BoardCorners->at(i), m_BoardCorners->at(i - 1), Color_MAGENTA, 1, 8);
 		}
 
 		imshow(MAIN_WINDOW, final);
 		waitKey(10);
-
-
 		system("pause");
-
 
 		// edit this
 	/*	while ((int) m_BoardCorners->size() < board_size.area())

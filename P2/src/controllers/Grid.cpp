@@ -31,28 +31,28 @@ namespace nl_uu_science_gmt
 	{
 		vector<Point>* all_points = new vector<Point>();
 
-		Point d = m_four_Corners.at(0);
-		Point c = m_four_Corners.at(1);
-		Point b = m_four_Corners.at(2);
-		Point a = m_four_Corners.at(3);
+		Point a = m_four_Corners.at(0);
+		Point b = m_four_Corners.at(1);
+		Point c = m_four_Corners.at(2);
+		Point d = m_four_Corners.at(3);
 
-		double delta_x_ad = (a.x > d.x) ? (a.x - d.x) : (d.x - a.x);
+		double delta_x_ad = d.x - a.x;
 		delta_x_ad /= m_grid_size.height - 1;
 
-		double delta_y_ad = (a.y > d.y) ? (a.y - d.y) : (d.y - a.y);
+		double delta_y_ad = d.y - a.y;
 		delta_y_ad /= m_grid_size.height - 1;
 
-		double delta_x_bc = (b.x > c.x) ? (b.x - c.x) : (c.x - b.x);
+		double delta_x_bc = c.x - b.x;
 		delta_x_bc /= m_grid_size.height - 1;
 
-		double delta_y_bc = (b.y > c.y) ? (b.y - c.y) : (c.y - b.y);
+		double delta_y_bc = c.y - b.y;
 		delta_y_bc /= m_grid_size.height - 1;
 
 
 		for (int i = 0; i < m_grid_size.height; i++)
 		{
-			Point p(a.x + i * delta_x_ad, a.y - i * delta_y_ad);
-			Point q(b.x + i * delta_x_bc, b.y - i * delta_y_bc);
+			Point p(a.x + i * delta_x_ad, a.y + i * delta_y_ad);
+			Point q(b.x + i * delta_x_bc, b.y + i * delta_y_bc);
 
 			interpolate(p, q, all_points);
 		}
@@ -62,17 +62,15 @@ namespace nl_uu_science_gmt
 
 	void Grid::interpolate(Point p1, Point p2, vector<Point>* points)
 	{
-		double delta_x = (p1.x > p2.x) ? (p1.x - p2.x) : (p2.x - p1.x);
+		double delta_x = p2.x - p1.x;
 		delta_x /= m_grid_size.width - 1;
-		int start_x = (p1.x > p2.x) ? p2.x : p1.x;
 
-		double delta_y = (p1.y > p2.y) ? (p1.y - p2.y) : (p2.y - p1.y);
+		double delta_y = p2.y - p1.y;
 		delta_y /= m_grid_size.width - 1;
-		int start_y = (p1.y > p2.y) ? p2.y : p1.y;
 
 		for (int i = 0; i < m_grid_size.width; i++)
 		{
-			Point p(start_x + i * delta_x, start_y + i * delta_y);
+			Point p(p1.x + i * delta_x, p1.y + i * delta_y);
 			points->push_back(p);
 		}
 	}
