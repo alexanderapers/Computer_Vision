@@ -21,15 +21,15 @@ int main(
 		vid.getFrames(50, std::format("./data/cam{}/intrinsics", i));
 	}*/  
 
-
-	// READS INTRINSICS FROM THE FILES AND WRITES THEM TO INTRINSICS.XML
-	//for (int i = 1; i < 5; i++)
-	//{
-	//	const std::string input_file_path = std::format("..\\P1\\cam{}_out_camera_data.xml", i);
-	//	const std::string output_file_path = std::format("./data/cam{}/", i) + General::IntrinsicsFile;
-	//	General::writeIntrinsics(input_file_path, output_file_path);
-	//}
-
+	/*
+	 READS INTRINSICS FROM THE FILES AND WRITES THEM TO INTRINSICS.XML
+	for (int i = 1; i < 5; i++)
+	{
+		const std::string input_file_path = std::format("..\\P1\\cam{}_out_camera_data.xml", i);
+		const std::string output_file_path = std::format("./data/cam{}/", i) + General::IntrinsicsFile;
+		General::writeIntrinsics(input_file_path, output_file_path);
+	}*/
+	
 	VoxelReconstruction::showKeys();
 	VoxelReconstruction vr("data" + std::string(PATH_SEP), 4);
 	vr.run(argc, argv);

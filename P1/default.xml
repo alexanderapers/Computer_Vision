@@ -2,11 +2,11 @@
 <opencv_storage>
 <Settings>
   <!-- Number of inner corners per a item row and column. (square, circle) -->
-  <BoardSize_Width> 9</BoardSize_Width>
+  <BoardSize_Width>8</BoardSize_Width>
   <BoardSize_Height>6</BoardSize_Height>
   
   <!-- The size of a square in some user defined metric system (pixel, millimeter)-->
-  <Square_Size>24.8</Square_Size>
+  <Square_Size>115</Square_Size>
   
   <!-- The type of input used for camera calibration. One of: CHESSBOARD CIRCLES_GRID ASYMMETRIC_CIRCLES_GRID -->
   <Calibrate_Pattern>"CHESSBOARD"</Calibrate_Pattern>
@@ -24,7 +24,7 @@
   <Input_Delay>100</Input_Delay>	
   
   <!-- How many frames to use, for calibration. -->
-  <Calibrate_NrOfFrameToUse>36</Calibrate_NrOfFrameToUse>
+  <Calibrate_NrOfFrameToUse>50</Calibrate_NrOfFrameToUse>
   <!-- Consider only fy as a free parameter, the ratio fx/fy stays the same as in the input cameraMatrix. 
 	   Use or not setting. 0 - False Non-Zero - True-->
   <Calibrate_FixAspectRatio> 0 </Calibrate_FixAspectRatio>
@@ -34,7 +34,7 @@
   <Calibrate_FixPrincipalPointAtTheCenter> 0 </Calibrate_FixPrincipalPointAtTheCenter>
   
   <!-- The name of the output log file. -->
-  <Write_outputFileName>"out_camera_data.xml"</Write_outputFileName>
+  <Write_outputFileName>"cam1_out_camera_data.xml"</Write_outputFileName>
   <!-- If true (non-zero) we write to the output file the feature points.-->
   <Write_DetectedFeaturePoints>1</Write_DetectedFeaturePoints>
   <!-- If true (non-zero) we write to the output file the extrinsic camera parameters.-->

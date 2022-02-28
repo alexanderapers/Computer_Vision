@@ -248,7 +248,7 @@ void fullCalibration(int argc, char** argv)
     // get reprojection error of using all images
     Log("Calibrating with all images... \n");
     CameraCalibration::calibrate(argc, argv, "default.xml");
-    XMLData camera_output = XMLData::XMLData("./", "out_camera_data.xml", true);
+    XMLData camera_output = XMLData::XMLData("./", "cam1_out_camera_data.xml", true);
     double original_error = getAvgReprojectionError(camera_output);
 
     XMLData default_file("./", "default.xml", true);
@@ -268,7 +268,7 @@ void fullCalibration(int argc, char** argv)
 
         CameraCalibration::calibrate(argc, argv, "n-1_default.xml");
 
-        XMLData camera_output = XMLData::XMLData("./", "out_camera_data.xml", true);
+        XMLData camera_output = XMLData::XMLData("./", "cam1_out_camera_data.xml", true);
         double new_error = getAvgReprojectionError(camera_output);
 
         if (new_error < original_error)
