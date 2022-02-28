@@ -24,7 +24,7 @@ int main(
 	// USE MIDDLE FRAME OF BACKGROUND.AVI FOR EACH CAMERA
 	/*for (int i = 1; i < 5; i++)
 	{
-		Video vid = Video(std::format("./data/cam{}", i), General::BackgroundImage);
+		Video vid = Video(std::format("./data/cam{}", i), General::BackgroundVideo);
 		vid.getFrames(1, std::format( "./data/cam{}", i), "background");
 	}*/
 
