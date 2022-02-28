@@ -28,7 +28,7 @@ namespace nl_uu_science_gmt
 		
 	}
 
-	void Video::getFrames(int number, const std::string out_location)
+	void Video::getFrames(int number, const std::string out_location, const std::string file_name)
 	{
 		assert(number < m_frame_count);
 
@@ -45,7 +45,10 @@ namespace nl_uu_science_gmt
 			m_video_capture.set(1, i * frame_jump);
 			Mat frame;
 			m_video_capture >> frame;
-			const std::string file_path_name = std::format("{0}/frame_{1}.png", out_location, i * frame_jump);
+			const std::string file_path_name = number != 1 ?
+				std::format("{0}/{1}_{2}.png", out_location, file_name, i * frame_jump) :
+				std::format("{0}/{1}.png", out_location, file_name);
+
 			imwrite(file_path_name, frame);
 		}
 	}

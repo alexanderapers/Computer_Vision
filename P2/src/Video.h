@@ -22,8 +22,8 @@ public:
 	const std::string m_file_path;
 	const std::string m_file_name;
 	cv::VideoCapture m_video_capture;
-	Video(const std::string file_path, const std::string filen_ame);
-	void getFrames(int number, const std::string out_location);
+	Video(const std::string file_path, const std::string file_name);
+	void getFrames(int number, const std::string out_location, const std::string file_name);
 
 
 };

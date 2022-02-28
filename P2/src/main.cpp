@@ -15,11 +15,18 @@ int main(
 		int argc, char** argv)
 {
 	// GETS FRAMES FROM INTRINSICS VIDEO AND SAVES THEM INTO FILE
+	//for (int i = 1; i < 5; i++)
+	//{
+	//	Video vid = Video(std::format("./data/cam{}", i), General::IntrinsicsVideo);
+	//	vid.getFrames(50, std::format("./data/cam{}/intrinsics", i));
+	//}
+
+	// USE MIDDLE FRAME OF BACKGROUND.AVI FOR EACH CAMERA
 	/*for (int i = 1; i < 5; i++)
 	{
-		Video vid = Video(std::format("./data/cam{}", i), General::IntrinsicsVideo);
-		vid.getFrames(50, std::format("./data/cam{}/intrinsics", i));
-	}*/  
+		Video vid = Video(std::format("./data/cam{}", i), General::BackgroundImage);
+		vid.getFrames(1, std::format( "./data/cam{}", i), "background");
+	}*/
 
 	/*
 	 READS INTRINSICS FROM THE FILES AND WRITES THEM TO INTRINSICS.XML
@@ -29,6 +36,8 @@ int main(
 		const std::string output_file_path = std::format("./data/cam{}/", i) + General::IntrinsicsFile;
 		General::writeIntrinsics(input_file_path, output_file_path);
 	}*/
+
+	
 	
 	VoxelReconstruction::showKeys();
 	VoxelReconstruction vr("data" + std::string(PATH_SEP), 4);

@@ -44,6 +44,7 @@ public:
 	static const std::string VideoFile;
 	static const std::string BackgroundImageFile;
 	static const std::string ConfigFile;
+	static const std::string BackgroundImage;
 
 	static bool fexists(const std::string &);
 	static void log(const std::string &);
