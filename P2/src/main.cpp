@@ -5,7 +5,8 @@
 
 #include "utilities/General.h"
 #include "VoxelReconstruction.h"
-#include "Video.h"
+#include "controllers/Video.h"
+#include "controllers/Gaussian.h"
 
 using namespace nl_uu_science_gmt;
 using namespace cv;
@@ -70,15 +71,23 @@ int main(
 		const std::string output_file_path = std::format("./data/cam{}/", i) + General::IntrinsicsFile;
 		General::writeIntrinsics(input_file_path, output_file_path);
 	}*/
+
+	for (int i = 1; i < 5; i++)
+	{
+		Video background_video = Video(std::format("./data/cam{}", i), General::BackgroundVideo);
+		Gaussian gaussian = Gaussian(&background_video);
+		tuple<Mat, Mat> mats = gaussian.calculateGaussian();
+
+	}
 	
-	//VoxelReconstruction::showKeys();
-	//VoxelReconstruction vr("data" + std::string(PATH_SEP), 4);
-	//vr.run(argc, argv);
+	VoxelReconstruction::showKeys();
+	VoxelReconstruction vr("data" + std::string(PATH_SEP), 4);
+	vr.run(argc, argv);
 
-	Mat golden_standard = cv::imread("./data/cam1/golden_standard.png", cv::IMREAD_GRAYSCALE);
-	Mat two_pixels_off = cv::imread("./data/cam1/two_pixels_off.png", cv::IMREAD_GRAYSCALE);
-	auto measure_values = quality_measure(golden_standard, two_pixels_off);
+	//Mat golden_standard = cv::imread("./data/cam1/golden_standard.png", cv::IMREAD_GRAYSCALE);
+	//Mat two_pixels_off = cv::imread("./data/cam1/two_pixels_off.png", cv::IMREAD_GRAYSCALE);
+	//auto measure_values = quality_measure(golden_standard, two_pixels_off);
 
-	while (true) {}
+	//while (true) {}
 	return EXIT_SUCCESS;	
 }

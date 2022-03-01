@@ -36,8 +36,9 @@
     <ClCompile Include="src\controllers\Scene3DRenderer.cpp">
       <Filter>src\controllers</Filter>
     </ClCompile>
-    <ClCompile Include="src\Video.cpp" />
+    <ClCompile Include="src\controllers\Video.cpp" />
     <ClCompile Include="src\controllers\Grid.cpp" />
+    <ClCompile Include="src\controllers\Gaussian.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\VoxelReconstruction.h">
@@ -61,8 +62,9 @@
     <ClInclude Include="src\controllers\Scene3DRenderer.h">
       <Filter>src\controllers</Filter>
     </ClInclude>
-    <ClInclude Include="src\Video.h" />
+    <ClInclude Include="src\controllers\Video.h" />
     <ClInclude Include="src\controllers\Grid.h" />
+    <ClInclude Include="src\controllers\Gaussian.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\..\..\Pictures\background.png" />
