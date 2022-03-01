@@ -6,13 +6,8 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgproc/types_c.h>
 #include "VoxelReconstruction.h"
-<<<<<<< HEAD
 #include "controllers/Video.h"
 #include "controllers/Gaussian.h"
-=======
-#include "utilities/General.h"
-#include "Video.h"
->>>>>>> d5b52ce254a0908f8a952aacdd2ee1c87dde97cd
 
 using namespace nl_uu_science_gmt;
 using namespace cv;
@@ -177,7 +172,6 @@ int main(int argc, char** argv)
 		General::writeIntrinsics(input_file_path, output_file_path);
 	}*/
 
-<<<<<<< HEAD
 	for (int i = 1; i < 5; i++)
 	{
 		Video background_video = Video(std::format("./data/cam{}", i), General::BackgroundVideo);
@@ -185,9 +179,6 @@ int main(int argc, char** argv)
 		tuple<Mat, Mat> mats = gaussian.calculateGaussian();
 
 	}
-=======
-	auto results = search_algorithm();
->>>>>>> d5b52ce254a0908f8a952aacdd2ee1c87dde97cd
 	
 	VoxelReconstruction::showKeys();
 	VoxelReconstruction vr("data" + std::string(PATH_SEP), 4);

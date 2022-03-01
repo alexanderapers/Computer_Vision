@@ -45,13 +45,11 @@ namespace nl_uu_science_gmt
 		{
 			vid.set(1, i);
 			vid >> frame;
-			//cvtColor(frame, hsv_frame, CV_BGR2HSV);
-			//hsv_frame.convertTo(hsv_frame, CV_32FC3);
+			cvtColor(frame, hsv_frame, CV_BGR2HSV);
+			hsv_frame.convertTo(hsv_frame, CV_32FC3);
 
-			frame.convertTo(frame, CV_32FC3);
-
-			new_mean = running_mean + (frame - running_mean) / (i + 1);
-			new_std = running_std + (frame - running_mean).mul(frame - new_mean);
+			new_mean = running_mean + (hsv_frame - running_mean) / (i + 1);
+			new_std = running_std + (hsv_frame - running_mean).mul(hsv_frame - new_mean);
 
 			running_mean = new_mean;
 			running_std = new_std;
@@ -60,17 +58,10 @@ namespace nl_uu_science_gmt
 		Mat std = Mat(m_height, m_width, CV_32FC3);
 		cv::sqrt(running_std / (m_frame_count - 1), std);
 
-
 		Mat mean;
-		cvtColor(running_mean, mean, CV_HSV2BGR);
-		mean.convertTo(mean, CV_32SC3);
-		
-		cv::imshow("frame", mean);
-		waitKey(10000);
-		cv::imshow("frame", std);
-		waitKey(10000);
+		running_mean.convertTo(mean, CV_8UC3);
 	
-		return tuple<Mat, Mat>(running_mean, std);
+		return tuple<Mat, Mat>(mean, std);
 	}
 	
 }
