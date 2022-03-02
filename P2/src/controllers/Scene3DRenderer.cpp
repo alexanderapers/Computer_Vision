@@ -13,6 +13,7 @@
 #include <opencv2/imgproc/types_c.h>
 #include <stddef.h>
 #include <string>
+#include <iostream>
 
 #include "../utilities/General.h"
 
@@ -124,26 +125,39 @@ void Scene3DRenderer::processForeground(
 		Camera* camera)
 {
 	assert(!camera->getFrame().empty());
-	Mat hsv_image;
+	Mat hsv_image, hsv_3_channels;
 	cvtColor(camera->getFrame(), hsv_image, CV_BGR2HSV);  // from BGR to HSV color space
+	hsv_image.convertTo(hsv_3_channels, CV_32FC3);
 
 	vector<Mat> channels;
-	split(hsv_image, channels);  // Split the HSV-channels for further analysis
+	split(hsv_3_channels, channels);  // Split the HSV-channels for further analysis
 
+	Mat sd, diff, tmp, foreground, background;
+	
 	// Background subtraction H
-	Mat tmp, foreground, background;
-	absdiff(channels[0], camera->getBgHsvChannels().at(0), tmp);
+	absdiff(channels[0], camera->getBgHsvChannels().at(0), diff);
+	sd = camera->getBgSdHsvChannels().at(0);
+	sd.setTo(1.f, sd == 0.f);
+	tmp = diff / sd;
 	threshold(tmp, foreground, m_h_threshold, 255, CV_THRESH_BINARY);
 
 	// Background subtraction S
-	absdiff(channels[1], camera->getBgHsvChannels().at(1), tmp);
+	absdiff(channels[1], camera->getBgHsvChannels().at(1), diff);
+	sd = camera->getBgSdHsvChannels().at(1);
+	sd.setTo(1.f, sd == 0.f);
+	tmp = diff / sd;
 	threshold(tmp, background, m_s_threshold, 255, CV_THRESH_BINARY);
 	bitwise_and(foreground, background, foreground);
 
-	// Background subtraction V
-	absdiff(channels[2], camera->getBgHsvChannels().at(2), tmp);
+	// Background subtraction d
+	absdiff(channels[2], camera->getBgHsvChannels().at(2), diff);
+	sd = camera->getBgSdHsvChannels().at(2);
+	sd.setTo(1.f, sd == 0.f);
+	tmp = diff / sd;
 	threshold(tmp, background, m_v_threshold, 255, CV_THRESH_BINARY);
 	bitwise_or(foreground, background, foreground);
+
+	foreground.convertTo(foreground, CV_8U);
 
 	// Improve the foreground image
 

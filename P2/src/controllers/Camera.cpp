@@ -62,7 +62,8 @@ bool Camera::initialize()
 	Mat bg_image;
 	if (General::fexists(m_data_path + General::BackgroundImageFile))
 	{
-		bg_image = imread(m_data_path + General::BackgroundImageFile);
+		FileStorage bg_fs(m_data_path + General::BackgroundImageFile, FileStorage::READ);
+		bg_fs["average"] >> bg_image;
 		if (bg_image.empty())
 		{
 			cout << "Unable to read: " << m_data_path + General::BackgroundImageFile;
@@ -76,10 +77,30 @@ bool Camera::initialize()
 	}
 	assert(!bg_image.empty());
 
+	// Copied existence check for background standard deviation.
+	Mat bg_sd_image;
+	if (General::fexists(m_data_path + General::BackgroundSDImageFile))
+	{
+		FileStorage bg_sd_fs(m_data_path + General::BackgroundSDImageFile, FileStorage::READ);
+		bg_sd_fs["sd"] >> bg_sd_image;
+		if (bg_sd_image.empty())
+		{
+			cout << "Unable to read: " << m_data_path + General::BackgroundSDImageFile;
+			return false;
+		}
+	}
+	else
+	{
+		cout << "Unable to find background standard deviation image: " << m_data_path + General::BackgroundSDImageFile;
+		return false;
+	}
+	assert(!bg_sd_image.empty());
+
 	// Disect the background image in HSV-color space
-	Mat bg_hsv_im;
-	cvtColor(bg_image, bg_hsv_im, CV_BGR2HSV);
-	split(bg_hsv_im, m_bg_hsv_channels);
+	split(bg_image, m_bg_hsv_channels);
+
+	// Disect the background SD image in HSV-color space
+	split(bg_sd_image, m_bg_sd_hsv_channels);
 
 	// Open the video for this camera
 	m_video = VideoCapture(m_data_path + General::VideoFile);

@@ -30,6 +30,7 @@ class Camera
 	const int m_id;                                 // Camera ID
 
 	std::vector<cv::Mat> m_bg_hsv_channels;          // Background HSV channel images
+	std::vector<cv::Mat> m_bg_sd_hsv_channels;		 // The standard deviation for the background HSV channel images
 	cv::Mat m_foreground_image;                      // This camera's foreground image (binary)
 
 	cv::VideoCapture m_video;                        // Video reader
@@ -108,6 +109,11 @@ public:
 	const std::vector<cv::Mat>& getBgHsvChannels() const
 	{
 		return m_bg_hsv_channels;
+	}
+
+	const std::vector<cv::Mat>& getBgSdHsvChannels() const
+	{
+		return m_bg_sd_hsv_channels;
 	}
 
 	bool isInitialized() const
