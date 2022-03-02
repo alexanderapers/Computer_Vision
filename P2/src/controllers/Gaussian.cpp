@@ -42,7 +42,7 @@ namespace nl_uu_science_gmt
 		for (int i = 0; i < m_frame_count; i++)
 		{
 			Mat frame; //= Mat(m_height, m_width, CV_32SC3);
-			vid.set(1, i);
+			vid.set(cv::VideoCaptureProperties::CAP_PROP_POS_FRAMES, i);
 			vid >> frame;
 
 			Mat hsv_frame; // = Mat(m_height, m_width, CV_32SC3);
