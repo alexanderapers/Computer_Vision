@@ -37,18 +37,19 @@ namespace nl_uu_science_gmt
 		Mat new_mean = Mat(m_height, m_width, CV_32FC3, Scalar(0, 0, 0));
 		Mat new_std = Mat(m_height, m_width, CV_32FC3, Scalar(0, 0, 0));
 
-		Mat frame; //= Mat(m_height, m_width, CV_32SC3);
-		Mat hsv_frame; // = Mat(m_height, m_width, CV_32SC3);
 
 		VideoCapture vid = m_background_vid->m_video_capture;
 		for (int i = 0; i < m_frame_count; i++)
 		{
+			Mat frame; //= Mat(m_height, m_width, CV_32SC3);
 			vid.set(1, i);
 			vid >> frame;
+
+			Mat hsv_frame; // = Mat(m_height, m_width, CV_32SC3);
 			cvtColor(frame, hsv_frame, CV_BGR2HSV);
 			hsv_frame.convertTo(hsv_frame, CV_32FC3);
 
-			new_mean = running_mean + (hsv_frame - running_mean) / (i + 1);
+			new_mean = running_mean + ((hsv_frame - running_mean) / (float)(i + 1));
 			new_std = running_std + (hsv_frame - running_mean).mul(hsv_frame - new_mean);
 
 			running_mean = new_mean;
@@ -56,11 +57,12 @@ namespace nl_uu_science_gmt
 		}
 
 		Mat std = Mat(m_height, m_width, CV_32FC3);
-		cv::sqrt(running_std / (m_frame_count - 1), std);
+		cv::sqrt(running_std / (float)(m_frame_count - 1), std);
+
 
 		Mat mean;
 		running_mean.convertTo(mean, CV_8UC3);
-	
+
 		return tuple<Mat, Mat>(mean, std);
 	}
 	
