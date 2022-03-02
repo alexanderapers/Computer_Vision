@@ -8,6 +8,7 @@
 #include "VoxelReconstruction.h"
 #include "controllers/Video.h"
 #include "controllers/Gaussian.h"
+#include "utilities/General.h"
 
 using namespace nl_uu_science_gmt;
 using namespace cv;

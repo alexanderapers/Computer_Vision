@@ -37,8 +37,8 @@ namespace nl_uu_science_gmt
 		Mat new_mean = Mat(m_height, m_width, CV_32FC3, Scalar(0, 0, 0));
 		Mat new_std = Mat(m_height, m_width, CV_32FC3, Scalar(0, 0, 0));
 
-		Mat frame = Mat(m_height, m_width, CV_32SC3);
-		Mat hsv_frame = Mat(m_height, m_width, CV_32SC3);
+		Mat frame; //= Mat(m_height, m_width, CV_32SC3);
+		Mat hsv_frame; // = Mat(m_height, m_width, CV_32SC3);
 
 		VideoCapture vid = m_background_vid->m_video_capture;
 		for (int i = 0; i < m_frame_count; i++)
