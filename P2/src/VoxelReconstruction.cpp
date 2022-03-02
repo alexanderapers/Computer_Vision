@@ -18,6 +18,7 @@
 #include "controllers/Reconstructor.h"
 #include "controllers/Scene3DRenderer.h"
 #include "utilities/General.h"
+#include <opencv2/imgproc.hpp>
 
 using namespace nl_uu_science_gmt;
 using namespace std;
@@ -99,6 +100,88 @@ void VoxelReconstruction::showKeys()
 	cout << "Rotate the 3D scene with left click+drag" << endl << endl;
 }
 
+/// <summary>
+/// Calculates the quality measure of two (grayscale) images.
+/// </summary>
+inline float generate_quality_measure(Mat img1, Mat img2) {
+	// Get the total pixel count.
+	int pixel_count = img1.total();
+
+	// Calculate the amount of pixels that are white when they should be black, and vice versa.
+	Mat XOR_diff = Mat();
+	cv::bitwise_xor(img1, img2, XOR_diff);
+	unsigned int diff_count = countNonZero(XOR_diff);
+
+	// Report quality measure variables.
+	double success = (pixel_count - diff_count) / (float)pixel_count;
+
+	// Return the amount of differing pixels, and the success rate.
+	return success;
+}
+
+/// <summary>
+/// Using an arbitrary camera view, this function tunes the HSV thresholds of a given renderer.
+/// </summary>
+inline void tune_renderer(Scene3DRenderer& renderer, Camera * camera) {
+	cout << "Tuning renderer HSV thresholds... (This may take a while)" << endl;
+
+	// Take an arbitrary camera, find the optimal parameters.
+	int cam_id = 1;
+	string cam_path = std::format("./data/cam{}/", cam_id);
+
+	// Take one frame from video.avi
+	VideoCapture cap = VideoCapture(std::format("{}video.avi", cam_path));
+	Mat frame;
+	cap >> frame;
+
+	// TODO: Get SD & mean of background.
+	Mat background = cv::imread(std::format("{}background.png", cam_path));
+
+	// Get golden standard to compare against
+	Mat golden_standard = cv::imread(std::format("{}golden_standard.png", cam_path), cv::IMREAD_GRAYSCALE);
+
+	// For all channels, generate every possible combination (limit the amount of values to combine).
+
+	// ATTEMPT AT SIMPLE GRID SEARCH ----------------------------------------------------------------
+	std::vector<int> possible_h_values(10);
+	std::generate(possible_h_values.begin(), possible_h_values.end(), [n = 0]() mutable { return n++; });
+	std::vector<int> possible_s_values(25);
+	std::generate(possible_s_values.begin(), possible_s_values.end(), [n = 5]() mutable { return n++; });
+	std::vector<int> possible_v_values(40);
+	std::generate(possible_v_values.begin(), possible_v_values.end(), [n = 10]() mutable { return n += 2; });
+
+	float best_quality_measure = 0;
+	vector<int> best_HSV;
+	// Loop over all combinations of HSV values.
+	for (int H : possible_h_values) for (int S : possible_s_values) for (int V : possible_v_values) {
+		// Set renderer values.
+		renderer.setHThreshold(H);
+		renderer.setSThreshold(S);
+		renderer.setVThreshold(V);
+
+		renderer.processForeground(camera);
+		Mat foreground = camera->getForegroundImage();
+
+		float quality_measure = generate_quality_measure(foreground, golden_standard);
+
+		if (quality_measure > best_quality_measure) {
+			best_quality_measure = quality_measure;
+			best_HSV = { H, S, V };
+		}
+	}
+	// -----------------------------------------------------------------------------------------------
+
+	int H = best_HSV[0];
+	int S = best_HSV[1];
+	int V = best_HSV[2];
+	renderer.setHThreshold(H);
+	renderer.setSThreshold(S);
+	renderer.setVThreshold(V);
+
+	cout << "Best quality measure " << best_quality_measure << endl;
+	cout << std::format("Camera {0} best HSV values: {1} {2} {3}", cam_id, H, S, V) << endl;
+}
+
 /**
  * - If the xml-file with camera intrinsics, extrinsics and distortion is missing,
  *   create it from the checkerboard video and the measured camera intrinsics
@@ -120,7 +203,10 @@ void VoxelReconstruction::run(int argc, char** argv)
 	namedWindow(VIDEO_WINDOW, CV_WINDOW_KEEPRATIO);
 
 	Reconstructor reconstructor(m_cam_views);
+	Camera* cam_view = m_cam_views[0];
+	cam_view->advanceVideoFrame();
 	Scene3DRenderer scene3d(reconstructor, m_cam_views);
+	tune_renderer(scene3d, cam_view);
 	Glut glut(scene3d);
 
 #ifdef __linux__
