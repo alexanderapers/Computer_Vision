@@ -173,13 +173,19 @@ int main(int argc, char** argv)
 		General::writeIntrinsics(input_file_path, output_file_path);
 	}*/
 
-	for (int i = 1; i < 5; i++)
-	{
-		Video background_video = Video(std::format("./data/cam{}", i), General::BackgroundVideo);
-		Gaussian gaussian = Gaussian(&background_video);
-		tuple<Mat, Mat> mats = gaussian.calculateGaussian();
+	//for (int i = 1; i < 5; i++)
+	//{
+	//	Video background_video = Video(std::format("./data/cam{}", i), General::BackgroundVideo);
+	//	Gaussian gaussian = Gaussian(&background_video);
+	//	tuple<Mat, Mat> mats = gaussian.calculateGaussian();
+	//	Mat average = get<0>(mats);
+	//	Mat sd = get<1>(mats);
 
-	}
+	//	FileStorage fs(std::format("./data/cam{}/background.xml", i), FileStorage::WRITE);
+	//	FileStorage fs2(std::format("./data/cam{}/background_sd.xml", i), FileStorage::WRITE);
+	//	fs << "average" << average;
+	//	fs2 << "sd" << sd;
+	//}
 	
 	VoxelReconstruction::showKeys();
 	VoxelReconstruction vr("data" + std::string(PATH_SEP), 4);
