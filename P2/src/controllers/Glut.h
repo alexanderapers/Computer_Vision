@@ -5,8 +5,7 @@
  *      Author: coert
  */
 
-#ifndef GLUT_H_
-#define GLUT_H_
+#pragma once
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -85,5 +84,3 @@ public:
 };
 
 } /* namespace nl_uu_science_gmt */
-
-#endif /* GLUT_H_ */

@@ -5,8 +5,7 @@
  *      Author: coert
  */
 
-#ifndef RECONSTRUCTOR_H_
-#define RECONSTRUCTOR_H_
+#pragma once
 
 #include <opencv2/core/core.hpp>
 #include <stddef.h>
@@ -93,5 +92,3 @@ public:
 };
 
 } /* namespace nl_uu_science_gmt */
-
-#endif /* RECONSTRUCTOR_H_ */

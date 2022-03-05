@@ -5,8 +5,7 @@
  *      Author: coert
  */
 
-#ifndef VOXELRECONSTRUCTION_H_
-#define VOXELRECONSTRUCTION_H_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -34,4 +33,3 @@ public:
 
 } /* namespace nl_uu_science_gmt */
 
-#endif /* VOXELRECONSTRUCTION_H_ */

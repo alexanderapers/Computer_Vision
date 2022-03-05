@@ -1,5 +1,4 @@
-#ifndef ARCBALL_H
-#define ARCBALL_H
+#pragma once
 
 /* Arcball, written by Bradley Smith, March 24, 2006
  * arcball.h is free to use and modify for any purpose, with no
@@ -116,5 +115,3 @@ extern void arcball_add_distance(int);
 extern void arcball_reset();
 extern void arcball_start(int mx, int my);
 extern void arcball_move(int mx, int my);
-
-#endif

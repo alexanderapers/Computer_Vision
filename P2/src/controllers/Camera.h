@@ -5,8 +5,7 @@
  *      Author: coert
  */
 
-#ifndef CAMERA_H_
-#define CAMERA_H_
+#pragma once
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
@@ -158,5 +157,3 @@ public:
 };
 
 } /* namespace nl_uu_science_gmt */
-
-#endif /* CAMERA_H_ */

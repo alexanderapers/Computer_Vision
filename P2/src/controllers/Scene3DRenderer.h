@@ -5,8 +5,7 @@
  *      Author: coert
  */
 
-#ifndef SCENE3DRENDERER_H_
-#define SCENE3DRENDERER_H_
+#pragma once
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/operations.hpp>
@@ -415,5 +414,3 @@ public:
 };
 
 } /* namespace nl_uu_science_gmt */
-
-#endif /* SCENE3DRENDERER_H_ */
