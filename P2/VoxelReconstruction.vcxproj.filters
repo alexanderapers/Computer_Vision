@@ -10,6 +10,12 @@
     <Filter Include="src\controllers">
       <UniqueIdentifier>{81deb15f-ad36-44bb-8467-ce3485ede2eb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\background">
+      <UniqueIdentifier>{9aa6abb2-98ec-41eb-b9c8-c17e5c924958}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\calibration">
+      <UniqueIdentifier>{4a7f9738-30a2-4674-b754-280e540c4c48}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -37,8 +43,13 @@
       <Filter>src\controllers</Filter>
     </ClCompile>
     <ClCompile Include="src\controllers\Video.cpp" />
-    <ClCompile Include="src\controllers\Grid.cpp" />
-    <ClCompile Include="src\controllers\Gaussian.cpp" />
+    <ClCompile Include="precomp.cpp" />
+    <ClCompile Include="src\calibration\Grid.cpp">
+      <Filter>src\calibration</Filter>
+    </ClCompile>
+    <ClCompile Include="src\background\Gaussian.cpp">
+      <Filter>src\background</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\VoxelReconstruction.h">
@@ -63,10 +74,12 @@
       <Filter>src\controllers</Filter>
     </ClInclude>
     <ClInclude Include="src\controllers\Video.h" />
-    <ClInclude Include="src\controllers\Grid.h" />
-    <ClInclude Include="src\controllers\Gaussian.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\..\..\..\..\Pictures\background.png" />
+    <ClInclude Include="precomp.h" />
+    <ClInclude Include="src\calibration\Grid.h">
+      <Filter>src\calibration</Filter>
+    </ClInclude>
+    <ClInclude Include="src\background\Gaussian.h">
+      <Filter>src\background</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
