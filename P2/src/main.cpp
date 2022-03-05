@@ -1,14 +1,7 @@
-#include <cstdlib>
-#include <string>
-#include <iostream>
-#include <filesystem>
+#include "precomp.h"
 
-#include <opencv2/imgproc.hpp>
-#include <opencv2/imgproc/types_c.h>
 #include "VoxelReconstruction.h"
-#include "controllers/Video.h"
-#include "controllers/Gaussian.h"
-#include "utilities/General.h"
+#include <src/utilities/General.h>
 
 using namespace nl_uu_science_gmt;
 using namespace cv;
@@ -89,6 +82,7 @@ int main(int argc, char** argv)
 	VoxelReconstruction::showKeys();
 	VoxelReconstruction vr("data" + std::string(PATH_SEP), 4);
 	vr.run(argc, argv);
+
 
 	while (true) {}
 	return EXIT_SUCCESS;	
