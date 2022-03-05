@@ -4,7 +4,7 @@
  *  Created on: Nov 13, 2013
  *      Author: coert
  */
-
+#include "precomp.h"
 #include "Camera.h"
 
 #include <opencv2/calib3d/calib3d.hpp>
@@ -21,8 +21,7 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
-#include "Grid.h"
-
+#include "../calibration/Grid.h"
 #include "../utilities/General.h"
 
 using namespace std;

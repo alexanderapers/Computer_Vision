@@ -4,7 +4,7 @@
  *  Created on: Nov 15, 2013
  *      Author: Coert and a guy named Frank
  */
-
+#include "precomp.h"
 #include "Glut.h"
 
 #ifdef __linux__

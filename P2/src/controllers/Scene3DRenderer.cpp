@@ -5,6 +5,7 @@
  *      Author: coert
  */
 
+#include "precomp.h"
 #include "Scene3DRenderer.h"
 
 #include <opencv2/core/mat.hpp>

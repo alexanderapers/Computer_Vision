@@ -5,6 +5,7 @@
  * See arcball.h for usage details.
  */
 
+#include "precomp.h"
 #include "arcball.h"
 
 #ifdef _WIN32

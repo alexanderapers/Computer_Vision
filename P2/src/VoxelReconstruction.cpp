@@ -5,6 +5,7 @@
  *      Author: coert
  */
 
+#include "precomp.h"
 #include "VoxelReconstruction.h"
 
 #include <opencv2/highgui/highgui.hpp>

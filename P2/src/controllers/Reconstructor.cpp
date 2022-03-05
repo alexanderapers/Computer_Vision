@@ -5,6 +5,7 @@
  *      Author: coert
  */
 
+#include "precomp.h"
 #include "Reconstructor.h"
 
 #include <opencv2/core/mat.hpp>
