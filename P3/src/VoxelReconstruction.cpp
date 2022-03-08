@@ -207,7 +207,13 @@ void VoxelReconstruction::run(int argc, char** argv)
 	Camera* cam_view = m_cam_views[0];
 	cam_view->advanceVideoFrame();
 	Scene3DRenderer scene3d(reconstructor, m_cam_views);
-	tune_renderer(scene3d, cam_view);
+
+	// Instead of tuning the renderer, we now manually set the previously found HSV values (H=9, S=29, V=54)
+	// tune_renderer(scene3d, cam_view); // Old tuning code.
+ 	scene3d.setHThreshold(9);
+	scene3d.setSThreshold(29);
+	scene3d.setVThreshold(54);
+	
 	Glut glut(scene3d);
 
 #ifdef __linux__
