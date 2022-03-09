@@ -58,6 +58,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/imgproc/types_c.h>
+#include <opencv2/ml.hpp>
 
 // ===========================================
 // NAMESPACES

@@ -52,6 +52,7 @@
     </ClCompile>
     <ClCompile Include="src\background\gaussian\GaussianBackgroundSubtraction.cpp" />
     <ClCompile Include="src\background\mog2\MOG2BackgroundSubtraction.cpp" />
+    <ClCompile Include="src\controllers\ColorModel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\VoxelReconstruction.h">
@@ -86,5 +87,6 @@
     <ClInclude Include="src\background\BackgroundSubtraction.h" />
     <ClInclude Include="src\background\gaussian\GaussianBackgroundSubtraction.h" />
     <ClInclude Include="src\background\mog2\MOG2BackgroundSubtraction.h" />
+    <ClInclude Include="src\controllers\ColorModel.h" />
   </ItemGroup>
 </Project>
