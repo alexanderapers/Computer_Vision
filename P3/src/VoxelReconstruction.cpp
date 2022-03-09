@@ -223,6 +223,8 @@ void VoxelReconstruction::run(int argc, char** argv)
 	scene3d.setSThreshold(29);
 	scene3d.setVThreshold(54);
 	
+	// use a suitable frame to build model on
+	scene3d.setCurrentFrame(1000);
 	Glut glut(scene3d);
 
 #ifdef __linux__
