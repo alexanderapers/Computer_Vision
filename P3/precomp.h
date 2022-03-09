@@ -81,7 +81,7 @@ using namespace cv;
 // Include files that are not likely to change.
 #include "./src/controllers/Video.h"
 #include "./src/controllers/Camera.h"
-#include "./src/background/Gaussian.h"
+#include "./src/background/gaussian/Gaussian.h"
 
 // ===========================================
 // UNSTABLE PROJECT HEADER FILES
@@ -90,3 +90,5 @@ using namespace cv;
 
 //#include "./src/controllers/Scene3DRenderer.h"
 //#include "./src/VoxelReconstruction.h"
+//#include "./src/background/gaussian/GaussianBackgroundSubtraction.h"
+//#include "./src/background/mog2/MOG2BackgroundSubtraction.h"
