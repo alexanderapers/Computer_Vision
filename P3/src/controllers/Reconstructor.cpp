@@ -30,7 +30,7 @@ Reconstructor::Reconstructor(
 		const vector<Camera*> &cs) :
 				m_cameras(cs),
 				m_height(2048),
-				m_step(32)
+				m_step(128)
 {
 	for (size_t c = 0; c < m_cameras.size(); ++c)
 	{
@@ -206,8 +206,38 @@ void Reconstructor::cluster()
 	TermCriteria termination_criteria;
 	termination_criteria.epsilon = 0.1; //??
 	double compactness = kmeans(m_groundCoordinates, K, bestLabels, termination_criteria, reruns, KmeansFlags(), centers);
-	cout << std::format("Clustered {0} times with K={1} final compactness measure of {2}", reruns, K, compactness) << endl;
+	//cout << std::format("Clustered {0} times with K={1} final compactness measure of {2}", reruns, K, compactness) << endl;
 	m_clusterLabels = bestLabels;
+	m_centers = centers;
+
+	vector<vector<int>> clusters = vector<vector<int>>(K);
+
+	for (int i = 0; i < m_visible_voxels.size(); i++)
+	{
+		clusters[m_clusterLabels[i]].push_back(i);
+	}
+
+	m_clusters = clusters;
+}
+
+void Reconstructor::buildOfflineColorModels()
+{
+	for (int k = 0; k < (int)m_clusters.size(); k++)
+	{
+		for (int i = 0; i < (int)m_clusters[k].size(); i++)
+		{
+			// get frame from camera 0
+			Mat current_frame = m_cameras[0]->getFrame();
+
+			imshow("frame", current_frame);
+			waitKey(100000);
+			//m_visible_voxels[m_clusters[k][i]]->camera_projection[0];
+				
+
+		}
+	}
+
+
 }
 
 } /* namespace nl_uu_science_gmt */
