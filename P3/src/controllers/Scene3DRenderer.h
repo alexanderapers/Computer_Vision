@@ -15,16 +15,21 @@
 #endif
 
 #include "arcball.h"
-#include "Camera.h"
-#include "Reconstructor.h"
+// #include "Camera.h"
+// #include "Reconstructor.h"
+
 
 namespace nl_uu_science_gmt
 {
+	class BackgroundSubtraction;
+	class Camera;
+	class Reconstructor;
 
 class Scene3DRenderer
 {
 	Reconstructor &m_reconstructor;          // Reference to Reconstructor
 	const std::vector<Camera*> &m_cameras;  // Reference to camera's vector
+	const std::vector<BackgroundSubtraction*>& m_bg_subtraction; // Reference to the background subtractor's vector
 	const int m_num;                        // Floor grid scale
 	const float m_sphere_radius;            // ArcBall sphere radius
 
@@ -80,11 +85,8 @@ class Scene3DRenderer
 
 public:
 	Scene3DRenderer(
-			Reconstructor &, const std::vector<Camera*> &);
+			Reconstructor &, const std::vector<Camera*> &, const vector<BackgroundSubtraction*> &);
 	virtual ~Scene3DRenderer();
-
-	void processForeground(
-			Camera*);
 
 	bool processFrame();
 	void setCamera(

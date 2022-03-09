@@ -7,7 +7,8 @@
 
 #include "precomp.h"
 #include "VoxelReconstruction.h"
-
+#include "background/mog2/MOG2BackgroundSubtraction.h"
+#include "background/gaussian/GaussianBackgroundSubtraction.h"
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/highgui/highgui_c.h>
 #include <stddef.h>
@@ -65,6 +66,11 @@ VoxelReconstruction::VoxelReconstruction(const string &dp, const int cva) :
 		);
 
 		m_cam_views.push_back(new Camera(full_path.str(), General::ConfigFile, v));
+		
+		BackgroundSubtraction* bg_sub = new MOG2BackgroundSubtraction(v + 1, 0.1f);
+		//BackgroundSubtraction* bg_sub = new GaussianBackgroundSubtraction(v);
+		bg_sub->prepareBgRef();
+		m_bg_subtractors.push_back(bg_sub);
 	}
 }
 
@@ -74,7 +80,11 @@ VoxelReconstruction::VoxelReconstruction(const string &dp, const int cva) :
 VoxelReconstruction::~VoxelReconstruction()
 {
 	for (size_t v = 0; v < m_cam_views.size(); ++v)
+	{
 		delete m_cam_views[v];
+		delete m_bg_subtractors[v];
+	}
+		
 }
 
 /**
@@ -123,7 +133,7 @@ inline float generate_quality_measure(Mat img1, Mat img2) {
 /// <summary>
 /// Using an arbitrary camera view, this function tunes the HSV thresholds of a given renderer.
 /// </summary>
-inline void tune_renderer(Scene3DRenderer& renderer, Camera * camera) {
+void VoxelReconstruction::tuneRenderer(Scene3DRenderer& renderer, Camera * camera) {
 	cout << "Tuning renderer HSV thresholds... (This may take a while)" << endl;
 
 	// Take an arbitrary camera, find the optimal parameters.
@@ -143,7 +153,7 @@ inline void tune_renderer(Scene3DRenderer& renderer, Camera * camera) {
 
 	// For all channels, generate every possible combination (limit the amount of values to combine).
 
-	// ATTEMPT AT SIMPLE GRID SEARCH ----------------------------------------------------------------
+	// SIMPLE GRID SEARCH
 	std::vector<int> possible_h_values(10);
 	std::generate(possible_h_values.begin(), possible_h_values.end(), [n = 0]() mutable { return n++; });
 	std::vector<int> possible_s_values(25);
@@ -160,7 +170,7 @@ inline void tune_renderer(Scene3DRenderer& renderer, Camera * camera) {
 		renderer.setSThreshold(S);
 		renderer.setVThreshold(V);
 
-		renderer.processForeground(camera);
+		m_bg_subtractors[cam_id]->processForeground(&renderer, camera);
 		Mat foreground = camera->getForegroundImage();
 
 		float quality_measure = generate_quality_measure(foreground, golden_standard);
@@ -170,7 +180,6 @@ inline void tune_renderer(Scene3DRenderer& renderer, Camera * camera) {
 			best_HSV = { H, S, V };
 		}
 	}
-	// -----------------------------------------------------------------------------------------------
 
 	int H = best_HSV[0];
 	int S = best_HSV[1];
@@ -206,7 +215,7 @@ void VoxelReconstruction::run(int argc, char** argv)
 	Reconstructor reconstructor(m_cam_views);
 	Camera* cam_view = m_cam_views[0];
 	cam_view->advanceVideoFrame();
-	Scene3DRenderer scene3d(reconstructor, m_cam_views);
+	Scene3DRenderer scene3d(reconstructor, m_cam_views, m_bg_subtractors);
 
 	// Instead of tuning the renderer, we now manually set the previously found HSV values (H=9, S=29, V=54)
 	// tune_renderer(scene3d, cam_view); // Old tuning code.
