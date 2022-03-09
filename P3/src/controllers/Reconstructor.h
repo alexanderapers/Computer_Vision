@@ -45,6 +45,8 @@ private:
 	std::vector<Voxel*> m_visible_voxels;   // Pointer vector to all visible voxels
 	std::vector<Point2f> m_groundCoordinates;
 	std::vector<int> m_clusterLabels;
+	std::vector<Point2f> m_centers;
+	std::vector<vector<int>> m_clusters;
 
 	void initialize();
 
@@ -98,6 +100,7 @@ public:
 	}
 
 	void cluster();
+	void buildOfflineColorModels();
 };
 
 } /* namespace nl_uu_science_gmt */
