@@ -49,23 +49,6 @@ void save_frames(string video_path, string output_filename, int n_frames = 1, st
 	}
 }
 
-void create_background_ref() {
-	cout << "Creating background reference images..." << endl;
-	for (int i = 1; i < 5; i++)
-	{
-		Video background_video = Video(std::format("./data/cam{}", i), General::BackgroundVideo);
-		Gaussian gaussian = Gaussian(&background_video);
-		tuple<Mat, Mat> mats = gaussian.calculateGaussian();
-		Mat average = get<0>(mats);
-		Mat sd = get<1>(mats);
-
-		FileStorage fs(std::format("./data/cam{}/background.xml", i), FileStorage::WRITE);
-		FileStorage fs2(std::format("./data/cam{}/background_sd.xml", i), FileStorage::WRITE);
-		fs << "average" << average;
-		fs2 << "sd" << sd;
-	}
-}
-
 int main(int argc, char** argv)
 {
 	//// GETS FRAMES FROM INTRINSICS VIDEO AND SAVES THEM INTO FILE
@@ -80,8 +63,6 @@ int main(int argc, char** argv)
 		General::writeIntrinsics(input_file_path, output_file_path);
 	}*/
 	
-	//create_background_ref();
-
 	VoxelReconstruction::showKeys();
 	VoxelReconstruction vr("data" + std::string(PATH_SEP), 4);
 	vr.run(argc, argv);
