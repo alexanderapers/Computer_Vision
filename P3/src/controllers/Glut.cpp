@@ -857,10 +857,17 @@ void Glut::drawVoxels()
 
 	for (size_t v = 0; v < voxels.size(); v++)
 	{
-		if (clusterLabels[v] == 0) glColor4f(0.9f, 0.1f, 0.1f, 1.0f);
-		else if (clusterLabels[v] == 1) glColor4f(0.1f, 0.9f, 0.1f, 1.0f);
-		else if (clusterLabels[v] == 2) glColor4f(0.1f, 0.1f, 0.9f, 1.0f);
-		else if (clusterLabels[v] == 3) glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
+		if (voxels[v]->z > 750)
+		{
+			if (clusterLabels[v] == 0) glColor4f(0.9f, 0.1f, 0.1f, 1.0f);
+			else if (clusterLabels[v] == 1) glColor4f(0.1f, 0.9f, 0.1f, 1.0f);
+			else if (clusterLabels[v] == 2) glColor4f(0.1f, 0.1f, 0.9f, 1.0f);
+			else if (clusterLabels[v] == 3) glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
+		}
+		else
+		{
+			glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+		}
 
 		//glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 		glVertex3f((GLfloat) voxels[v]->x, (GLfloat) voxels[v]->y, (GLfloat) voxels[v]->z);
