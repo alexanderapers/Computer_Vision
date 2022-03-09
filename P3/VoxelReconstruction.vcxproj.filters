@@ -47,9 +47,11 @@
     <ClCompile Include="src\calibration\Grid.cpp">
       <Filter>src\calibration</Filter>
     </ClCompile>
-    <ClCompile Include="src\background\Gaussian.cpp">
+    <ClCompile Include="src\background\gaussian\Gaussian.cpp">
       <Filter>src\background</Filter>
     </ClCompile>
+    <ClCompile Include="src\background\gaussian\GaussianBackgroundSubtraction.cpp" />
+    <ClCompile Include="src\background\mog2\MOG2BackgroundSubtraction.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\VoxelReconstruction.h">
@@ -78,8 +80,11 @@
     <ClInclude Include="src\calibration\Grid.h">
       <Filter>src\calibration</Filter>
     </ClInclude>
-    <ClInclude Include="src\background\Gaussian.h">
+    <ClInclude Include="src\background\gaussian\Gaussian.h">
       <Filter>src\background</Filter>
     </ClInclude>
+    <ClInclude Include="src\background\BackgroundSubtraction.h" />
+    <ClInclude Include="src\background\gaussian\GaussianBackgroundSubtraction.h" />
+    <ClInclude Include="src\background\mog2\MOG2BackgroundSubtraction.h" />
   </ItemGroup>
 </Project>

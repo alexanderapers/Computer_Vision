@@ -66,6 +66,7 @@ namespace nl_uu_science_gmt
 		Mat std = Mat(m_height, m_width, CV_32FC3);
 		cv::sqrt(accumulator / (float)(m_frame_count - 1), std);
 
+		vid.release();
 
 		//Mat mean;
 		//running_mean.convertTo(mean, CV_8UC3);

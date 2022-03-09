@@ -11,7 +11,6 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/imgproc/types_c.h>
 #include <stddef.h>
-#include "../controllers/Video.h"
 #include <cassert>
 #include <iostream>
 
@@ -20,6 +19,8 @@ using namespace cv;
 
 namespace nl_uu_science_gmt
 {
+class Video;
+
 class Gaussian
 {
 public:
