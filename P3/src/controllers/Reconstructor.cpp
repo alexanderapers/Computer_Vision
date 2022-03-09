@@ -186,6 +186,28 @@ void Reconstructor::update()
 	}
 
 	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
+
+	cluster();
+}
+
+void Reconstructor::cluster()
+{
+	m_groundCoordinates = vector<Point2f>(m_visible_voxels.size());
+	vector<int> bestLabels(m_visible_voxels.size());
+
+	for (int i = 0; i < (int)m_visible_voxels.size(); i++)
+	{
+		m_groundCoordinates[i] = Point2f(m_visible_voxels[i]->x, m_visible_voxels[i]->y);
+	}
+
+	int K = 4;
+	int reruns = 10;
+	vector<Point2f> centers(K);
+	TermCriteria termination_criteria;
+	termination_criteria.epsilon = 0.1; //??
+	double compactness = kmeans(m_groundCoordinates, K, bestLabels, termination_criteria, reruns, KmeansFlags(), centers);
+	cout << std::format("Clustered {0} times with K={1} final compactness measure of {2}", reruns, K, compactness) << endl;
+	m_clusterLabels = bestLabels;
 }
 
 } /* namespace nl_uu_science_gmt */

@@ -852,10 +852,17 @@ void Glut::drawVoxels()
 	glPointSize(2.0f);
 	glBegin(GL_POINTS);
 
+	vector<int> clusterLabels = m_Glut->getScene3d().getReconstructor().getClusterLabels();
 	vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
+
 	for (size_t v = 0; v < voxels.size(); v++)
 	{
-		glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+		if (clusterLabels[v] == 0) glColor4f(0.9f, 0.1f, 0.1f, 1.0f);
+		else if (clusterLabels[v] == 1) glColor4f(0.1f, 0.9f, 0.1f, 1.0f);
+		else if (clusterLabels[v] == 2) glColor4f(0.1f, 0.1f, 0.9f, 1.0f);
+		else if (clusterLabels[v] == 3) glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
+
+		//glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 		glVertex3f((GLfloat) voxels[v]->x, (GLfloat) voxels[v]->y, (GLfloat) voxels[v]->z);
 	}
 

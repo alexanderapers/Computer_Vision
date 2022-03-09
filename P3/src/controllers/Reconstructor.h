@@ -43,6 +43,8 @@ private:
 
 	std::vector<Voxel*> m_voxels;           // Pointer vector to all voxels in the half-space
 	std::vector<Voxel*> m_visible_voxels;   // Pointer vector to all visible voxels
+	std::vector<Point2f> m_groundCoordinates;
+	std::vector<int> m_clusterLabels;
 
 	void initialize();
 
@@ -56,6 +58,11 @@ public:
 	const std::vector<Voxel*>& getVisibleVoxels() const
 	{
 		return m_visible_voxels;
+	}
+
+	const std::vector<int>& getClusterLabels() const
+	{
+		return m_clusterLabels;
 	}
 
 	const std::vector<Voxel*>& getVoxels() const
@@ -89,6 +96,8 @@ public:
 	{
 		return m_plane_size;
 	}
+
+	void cluster();
 };
 
 } /* namespace nl_uu_science_gmt */
