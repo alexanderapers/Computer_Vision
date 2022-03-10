@@ -229,12 +229,15 @@ void Reconstructor::buildOfflineColorModels()
 			// get frame from camera 0
 			Mat current_frame = m_cameras[0]->getFrame();
 
-			imshow("frame", current_frame);
-			waitKey(100000);
-			//m_visible_voxels[m_clusters[k][i]]->camera_projection[0];
+			////cout << "hallo" << endl;
+			//imwrite("my_image.png", current_frame);
+			//waitKey(10);
+			//break;
+			////m_visible_voxels[m_clusters[k][i]]->camera_projection[0];
 				
 
 		}
+		break;
 	}
 
 
