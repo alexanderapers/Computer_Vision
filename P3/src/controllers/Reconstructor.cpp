@@ -222,22 +222,31 @@ void Reconstructor::cluster()
 
 void Reconstructor::buildOfflineColorModels()
 {
+	Mat current_frame = m_cameras[0]->getFrame();
+	cvtColor(current_frame, current_frame, CV_BGR2HSV); // convert to HSV color space
+
+	// for each cluster
 	for (int k = 0; k < (int)m_clusters.size(); k++)
 	{
+		// for each voxel in that cluster
 		for (int i = 0; i < (int)m_clusters[k].size(); i++)
 		{
-			// get frame from camera 0
-			Mat current_frame = m_cameras[0]->getFrame();
+			Voxel* voxel = m_visible_voxels[m_clusters[k][i]];
 
-			////cout << "hallo" << endl;
-			//imwrite("my_image.png", current_frame);
-			//waitKey(10);
-			//break;
-			////m_visible_voxels[m_clusters[k][i]]->camera_projection[0];
+			if (voxel->valid_camera_projection[0])
+			{
+				// check if voxel is not occluded 
+
+				Point point = voxel->camera_projection[0];
+				Vec3b color = current_frame.at<Vec3b>(point);
+
+			}
+
+
+			break;
 				
 
 		}
-		break;
 	}
 
 

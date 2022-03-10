@@ -220,28 +220,29 @@ void VoxelReconstruction::run(int argc, char** argv)
 
 	//cvDestroyAllWindows();
 
-	//// Instead of tuning the renderer, we now manually set the previously found HSV values (H=9, S=29, V=54)
-	//// tune_renderer(scene3d, cam_view); // Old tuning code.
  //	scene3d_offline.setHThreshold(9);
 	//scene3d_offline.setSThreshold(29);
 	//scene3d_offline.setVThreshold(54);
 	//
-	//// use a suitable frame to build model on
 	//scene3d_offline.setCurrentFrame(1000);
 	//scene3d_offline.processFrame();
 	//reconstructor_offline.update();
 	//reconstructor_offline.buildOfflineColorModels();
+
 	Reconstructor reconstructor(m_cam_views);
 	Camera* cam_view = m_cam_views[0];
 	cam_view->advanceVideoFrame();
 	Scene3DRenderer scene3d(reconstructor, m_cam_views, m_bg_subtractors);
 
+	//// Instead of tuning the renderer, we now manually set the previously found HSV values (H=9, S=29, V=54)
+	//// tune_renderer(scene3d, cam_view); // Old tuning code.
 	scene3d.setHThreshold(9);
 	scene3d.setSThreshold(29);
 	scene3d.setVThreshold(54);
 
 	// offline
-	scene3d.setCurrentFrame(1000);
+	//// use a suitable frame to build model on
+	scene3d.setCurrentFrame(666);
 	scene3d.processFrame();
 	reconstructor.update();
 	reconstructor.buildOfflineColorModels();
