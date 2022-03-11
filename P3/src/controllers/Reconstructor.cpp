@@ -255,13 +255,13 @@ void Reconstructor::buildOfflineColorModels()
 			}	
 		}
 		
-		Mat colors(points.size(), 3, CV_64F);
-		int i = 0;
+		Mat colors;
 		for (auto const& [key, val] : points)
 		{
-			colors.at<Vec3b>(i) = val;
-			i++;
+			Mat color_mat(val);
+			colors.push_back(color_mat.t());
 		}
+		colors = colors.t();
 
 		// colors has to be a Mat nx3 1-channel
 
@@ -270,6 +270,7 @@ void Reconstructor::buildOfflineColorModels()
 		Mat a, b, c;
 		cout << "colors: " << colors.size() << endl;
 		cout << colors.channels() << endl;
+		cout << colors.type() << endl;
 		GMM->trainEM(colors, a, b, c);
 		Mat means = GMM->getMeans();
 		vector<Mat> covs;
