@@ -32,6 +32,8 @@ const static cv::Scalar Color_CYAN = cv::Scalar(255, 255, 0);
 const static cv::Scalar Color_WHITE = cv::Scalar(255, 255, 255);
 const static cv::Scalar Color_BLACK = cv::Scalar(0, 0, 0);
 
+
+
 class General
 {
 public:
@@ -50,8 +52,18 @@ public:
 	static bool fexists(const std::string &);
 	static void log(const std::string &);
 	static void writeIntrinsics(const std::string read_file_path, const std::string write_file_path);
+
 };
 
 } /* namespace nl_uu_science_gmt */
 
+namespace std {
+	template <> struct hash<Point> {
+		inline size_t operator()(const Point& v) const {
+			std::hash<int> int_hasher;
+			return int_hasher(v.x) ^ int_hasher(v.y);
+		}
+	};
+
+}
 #endif /* GENERAL_H_ */
