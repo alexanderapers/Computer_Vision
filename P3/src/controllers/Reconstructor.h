@@ -101,6 +101,7 @@ public:
 
 	void cluster();
 	vector<Ptr<cv::ml::EM>> buildOfflineColorModels();
+	void interpretGMM(int GMM_number, Ptr<cv::ml::EM> GMM);
 };
 
 } /* namespace nl_uu_science_gmt */

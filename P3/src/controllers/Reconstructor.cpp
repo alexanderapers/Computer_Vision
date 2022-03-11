@@ -231,69 +231,60 @@ vector<Ptr<EM>> Reconstructor::buildOfflineColorModels()
 	// for each cluster
 	for (int k = 0; k < (int)m_clusters.size(); k++)
 	{
-		std::unordered_map<Point, Vec3b> points;
-		//Mat colors;
+		std::unordered_set<Point> points;
+		Mat colors;
 
 		// for each voxel in that cluster
 		for (int i = 0; i < (int)m_clusters[k].size(); i++)
 		{
 			Voxel* voxel = m_visible_voxels[m_clusters[k][i]];
 
-			if (voxel->valid_camera_projection[camera])
+			if (voxel->z > 750 && voxel->valid_camera_projection[camera])
 			{ 
 				Point point = voxel->camera_projection[camera];
-				Vec3b color = current_frame.at<Vec3b>(point);
 
 				if (!points.contains(point))
 				{
-					points.insert({point, color});
-					//colors.push_back(color);
+					Vec3b color = current_frame.at<Vec3b>(point);
+					points.insert(point);
+					Mat col(1, 3, CV_8UC1, color);
+					colors.push_back(col);
 				}
 			}	
-		}
-		
-		//cout << "colors: " << colors.size() << endl;
-		//cout << colors << endl;
-		Mat colors(points.size(), 3, CV_8UC1);
-		
-		int i = 0;
-		for (auto const& [key, val] : points)
-		{
-			Mat color_mat(val);
-			for (int j = 0; j < 3; j++)
-				colors.at<int>(i, j) = color_mat.at<int>(j);
-			i++;
 		}
 
 		Ptr<EM> GMM = EM::create();
 
-		// set number of clusters
+		// set cluster numbers, covariance types and termination criteria
 		GMM->setClustersNumber(2);
-		//Set covariance matrix type
 		GMM->setCovarianceMatrixType(EM::COV_MAT_SPHERICAL);
-		//Convergence condition
 		GMM->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
 
 		// train GMM
 		GMM->trainEM(colors, noArray(), noArray(), noArray());
 
-		Mat means = GMM->getMeans();
-		vector<Mat> covs;
-		GMM->getCovs(covs);
-
-		FileStorage fs_means(std::format("means{}.xml", k), FileStorage::WRITE);
-		fs_means << "means" << means;
-
-		FileStorage fs_covs(std::format("covs{}.xml", k), FileStorage::WRITE);
-		for (int i = 0; i < covs.size(); i++)
-		{
-			fs_covs << std::format("covs{}", i) << covs[i];
-		}
+		interpretGMM(k, GMM);
 
 		GMMS.push_back(GMM);
 	}
 
 	return GMMS;
+}
+
+void Reconstructor::interpretGMM(int GMM_number, Ptr<EM> GMM)
+{
+	Mat means = GMM->getMeans();
+	vector<Mat> covs;
+	GMM->getCovs(covs);
+
+	FileStorage fs_means(std::format("cluster_{}_means.xml", GMM_number + 1), FileStorage::WRITE);
+	fs_means << "means" << means;
+
+	FileStorage fs_covs(std::format("cluster_{}_covs.xml", GMM_number + 1), FileStorage::WRITE);
+	for (int i = 0; i < covs.size(); i++)
+	{
+		fs_covs << std::format("covs{}", i) << covs[i];
+	}
 }
 
 } /* namespace nl_uu_science_gmt */
