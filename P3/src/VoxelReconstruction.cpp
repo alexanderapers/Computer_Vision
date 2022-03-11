@@ -242,7 +242,7 @@ void VoxelReconstruction::run(int argc, char** argv)
 
 	// offline
 	//// use a suitable frame to build model on
-	scene3d.setCurrentFrame(666);
+	scene3d.setCurrentFrame(518);
 	scene3d.processFrame();
 	reconstructor.update();
 	reconstructor.buildOfflineColorModels();

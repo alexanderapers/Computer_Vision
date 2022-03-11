@@ -222,31 +222,57 @@ void Reconstructor::cluster()
 
 void Reconstructor::buildOfflineColorModels()
 {
-	Mat current_frame = m_cameras[0]->getFrame();
+	int camera = 3;
+	Mat current_frame = m_cameras[camera]->getFrame();
 	cvtColor(current_frame, current_frame, CV_BGR2HSV); // convert to HSV color space
 
 	// for each cluster
 	for (int k = 0; k < (int)m_clusters.size(); k++)
 	{
+		std::unordered_set<pair<int, int>> points;
+		Mat colors;
+
 		// for each voxel in that cluster
 		for (int i = 0; i < (int)m_clusters[k].size(); i++)
 		{
 			Voxel* voxel = m_visible_voxels[m_clusters[k][i]];
 
-			if (voxel->valid_camera_projection[0])
-			{
-				// check if voxel is not occluded 
-
-				Point point = voxel->camera_projection[0];
+			if (voxel->valid_camera_projection[camera])
+			{ 
+				Point point = voxel->camera_projection[camera];
 				Vec3b color = current_frame.at<Vec3b>(point);
+				pair<int, int> point_pair(point.x, point.y);
 
-			}
-
-
-			break;
-				
-
+				if (points.find(point_pair) == points.end())
+				{
+					points.insert(point_pair);
+					Mat col(1, 3, CV_8U, color);
+					colors.push_back(col);
+				}
+			}	
 		}
+
+		cv::ml::EM* GMM = cv::ml::EM::create();
+		GMM->setClustersNumber(2);
+		Mat a, b, c;
+		cout << "colors: " << colors.size() << endl;
+		cout << colors.channels() << endl;
+		GMM->trainEM(colors, a, b, c);
+		Mat means = GMM->getMeans();
+		vector<Mat> covs;
+		GMM->getCovs(covs);
+
+		FileStorage fs_means(std::format("means{}.xml", k), FileStorage::WRITE);
+		fs_means << "means" << means;
+
+		FileStorage fs_covs(std::format("covs{}.xml", k), FileStorage::WRITE);
+		for (int i = 0; i < covs.size(); i++)
+		{
+			fs_covs << std::format("covs{}", i) << covs[i];
+		}
+
+
+
 	}
 
 
