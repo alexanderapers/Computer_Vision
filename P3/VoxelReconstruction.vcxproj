@@ -11,7 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\controllers\ColorModel.cpp" />
     <ClCompile Include="src\background\mog2\MOG2BackgroundSubtraction.cpp" />
     <ClCompile Include="src\background\gaussian\GaussianBackgroundSubtraction.cpp" />
     <ClCompile Include="precomp.cpp">
@@ -31,7 +30,6 @@
     <ClCompile Include="src\controllers\Video.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\controllers\ColorModel.h" />
     <ClInclude Include="src\background\mog2\MOG2BackgroundSubtraction.h" />
     <ClInclude Include="src\background\gaussian\GaussianBackgroundSubtraction.h" />
     <ClInclude Include="src\background\BackgroundSubtraction.h" />
