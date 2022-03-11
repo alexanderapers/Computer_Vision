@@ -229,8 +229,9 @@ void Reconstructor::buildOfflineColorModels()
 	// for each cluster
 	for (int k = 0; k < (int)m_clusters.size(); k++)
 	{
-		std::unordered_set<pair<int, int>> points;
-		Mat colors;
+		//std::unordered_set<pair<int, int>> points;
+		std::unordered_map<Point, Vec3b> points;
+		//Mat colors;
 
 		// for each voxel in that cluster
 		for (int i = 0; i < (int)m_clusters[k].size(); i++)
@@ -241,16 +242,28 @@ void Reconstructor::buildOfflineColorModels()
 			{ 
 				Point point = voxel->camera_projection[camera];
 				Vec3b color = current_frame.at<Vec3b>(point);
-				pair<int, int> point_pair(point.x, point.y);
 
-				if (points.find(point_pair) == points.end())
+				//pair<int, int> point_pair(point.x, point.y);
+
+				//if (points.find(point_pair) == points.end())
+				if (!points.contains(point))
 				{
-					points.insert(point_pair);
-					Mat col(1, 3, CV_8U, color);
-					colors.push_back(col);
+					points.insert({point, color});
+					//Mat col(1, 3, CV_8U, color);
+					//colors.push_back(col);
 				}
 			}	
 		}
+		
+		Mat colors(points.size(), 3, CV_64F);
+		int i = 0;
+		for (auto const& [key, val] : points)
+		{
+			colors.at<Vec3b>(i) = val;
+			i++;
+		}
+
+		// colors has to be a Mat nx3 1-channel
 
 		cv::ml::EM* GMM = cv::ml::EM::create();
 		GMM->setClustersNumber(2);
