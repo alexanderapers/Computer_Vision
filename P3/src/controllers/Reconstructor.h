@@ -100,7 +100,7 @@ public:
 	}
 
 	void cluster();
-	void buildOfflineColorModels();
+	Ptr<EM> buildOfflineColorModels();
 };
 
 } /* namespace nl_uu_science_gmt */

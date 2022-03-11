@@ -221,7 +221,7 @@ void Reconstructor::cluster()
 	m_clusters = clusters;
 }
 
-void Reconstructor::buildOfflineColorModels()
+Ptr<EM> Reconstructor::buildOfflineColorModels()
 {
 	int camera = 3;
 	Mat current_frame = m_cameras[camera]->getFrame();
@@ -266,7 +266,8 @@ void Reconstructor::buildOfflineColorModels()
 			i++;
 		}
 
-		Ptr<EM> GMM = cv::ml::EM::create();
+		Ptr<EM> GMM = EM::create();
+
 		// set number of clusters
 		GMM->setClustersNumber(2);
 		//Set covariance matrix type
@@ -291,6 +292,7 @@ void Reconstructor::buildOfflineColorModels()
 		}
 	}
 
+	return GMM;
 }
 
 } /* namespace nl_uu_science_gmt */
