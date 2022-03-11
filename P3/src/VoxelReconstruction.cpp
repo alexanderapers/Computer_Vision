@@ -245,7 +245,7 @@ void VoxelReconstruction::run(int argc, char** argv)
 	scene3d.setCurrentFrame(518);
 	scene3d.processFrame();
 	reconstructor.update();
-	Ptr<cv::ml::EM> GMM = reconstructor.buildOfflineColorModels();
+	vector<Ptr<cv::ml::EM>> GMMS = reconstructor.buildOfflineColorModels();
 	scene3d.setCurrentFrame(0);
 	// offline
 

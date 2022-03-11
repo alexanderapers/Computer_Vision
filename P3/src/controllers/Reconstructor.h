@@ -100,7 +100,7 @@ public:
 	}
 
 	void cluster();
-	Ptr<EM> buildOfflineColorModels();
+	vector<Ptr<cv::ml::EM>> buildOfflineColorModels();
 };
 
 } /* namespace nl_uu_science_gmt */

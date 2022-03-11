@@ -221,11 +221,12 @@ void Reconstructor::cluster()
 	m_clusters = clusters;
 }
 
-Ptr<EM> Reconstructor::buildOfflineColorModels()
+vector<Ptr<EM>> Reconstructor::buildOfflineColorModels()
 {
 	int camera = 3;
 	Mat current_frame = m_cameras[camera]->getFrame();
 	cvtColor(current_frame, current_frame, CV_BGR2HSV); // convert to HSV color space
+	vector<Ptr<EM>> GMMS;
 
 	// for each cluster
 	for (int k = 0; k < (int)m_clusters.size(); k++)
@@ -243,18 +244,16 @@ Ptr<EM> Reconstructor::buildOfflineColorModels()
 				Point point = voxel->camera_projection[camera];
 				Vec3b color = current_frame.at<Vec3b>(point);
 
-				//pair<int, int> point_pair(point.x, point.y);
-
-				//if (points.find(point_pair) == points.end())
 				if (!points.contains(point))
 				{
 					points.insert({point, color});
-					//Mat col(1, 3, CV_8U, color);
-					//colors.push_back(col);
+					//colors.push_back(color);
 				}
 			}	
 		}
 		
+		//cout << "colors: " << colors.size() << endl;
+		//cout << colors << endl;
 		Mat colors(points.size(), 3, CV_8UC1);
 		
 		int i = 0;
@@ -290,9 +289,11 @@ Ptr<EM> Reconstructor::buildOfflineColorModels()
 		{
 			fs_covs << std::format("covs{}", i) << covs[i];
 		}
+
+		GMMS.push_back(GMM);
 	}
 
-	return GMM;
+	return GMMS;
 }
 
 } /* namespace nl_uu_science_gmt */
