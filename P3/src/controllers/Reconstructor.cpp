@@ -18,6 +18,7 @@
 
 using namespace std;
 using namespace cv;
+using namespace cv::ml;
 
 namespace nl_uu_science_gmt
 {
@@ -229,7 +230,6 @@ void Reconstructor::buildOfflineColorModels()
 	// for each cluster
 	for (int k = 0; k < (int)m_clusters.size(); k++)
 	{
-		//std::unordered_set<pair<int, int>> points;
 		std::unordered_map<Point, Vec3b> points;
 		//Mat colors;
 
@@ -255,23 +255,28 @@ void Reconstructor::buildOfflineColorModels()
 			}	
 		}
 		
-		Mat colors;
+		Mat colors(points.size(), 3, CV_8UC1);
+		
+		int i = 0;
 		for (auto const& [key, val] : points)
 		{
 			Mat color_mat(val);
-			colors.push_back(color_mat.t());
+			for (int j = 0; j < 3; j++)
+				colors.at<int>(i, j) = color_mat.at<int>(j);
+			i++;
 		}
-		colors = colors.t();
 
-		// colors has to be a Mat nx3 1-channel
-
-		cv::ml::EM* GMM = cv::ml::EM::create();
+		Ptr<EM> GMM = cv::ml::EM::create();
+		// set number of clusters
 		GMM->setClustersNumber(2);
-		Mat a, b, c;
-		cout << "colors: " << colors.size() << endl;
-		cout << colors.channels() << endl;
-		cout << colors.type() << endl;
-		GMM->trainEM(colors, a, b, c);
+		//Set covariance matrix type
+		GMM->setCovarianceMatrixType(EM::COV_MAT_SPHERICAL);
+		//Convergence condition
+		GMM->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
+
+		// train GMM
+		GMM->trainEM(colors, noArray(), noArray(), noArray());
+
 		Mat means = GMM->getMeans();
 		vector<Mat> covs;
 		GMM->getCovs(covs);
@@ -284,11 +289,7 @@ void Reconstructor::buildOfflineColorModels()
 		{
 			fs_covs << std::format("covs{}", i) << covs[i];
 		}
-
-
-
 	}
-
 
 }
 
