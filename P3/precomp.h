@@ -29,6 +29,8 @@
 #include <GL/glu.h>
 #endif
 
+#define LOWER_GMM_LIMIT 780
+#define UPPER_GMM_LIMIT 1500
 
 // ===========================================
 // STANDARD LIBRARY HEADERS

@@ -247,7 +247,7 @@ void Reconstructor::buildOfflineColorModels()
 		{
 			Voxel* voxel = m_visible_voxels[m_clusters[k][i]];
 
-			if (voxel->z > 780 && voxel->z < 1500 && voxel->valid_camera_projection[camera])
+			if (voxel->z > LOWER_GMM_LIMIT && voxel->z < UPPER_GMM_LIMIT && voxel->valid_camera_projection[camera])
 			{ 
 				Point point = voxel->camera_projection[camera];
 

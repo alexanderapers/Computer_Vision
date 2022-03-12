@@ -852,12 +852,89 @@ void Glut::drawVoxels()
 	glPointSize(2.0f);
 	glBegin(GL_POINTS);
 
-	vector<int> clusterLabels = m_Glut->getScene3d().getReconstructor().getClusterLabels();
-	vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
+	// Retrieve the scene and reconstructor.
+	Scene3DRenderer scene3D = m_Glut->getScene3d();
+	Reconstructor reconstructor = scene3D.getReconstructor();
+
+	// Get the camera and the current frame.
+	int camera_id = 3;
+	Camera * camera = scene3D.getCameras()[camera_id];
+	Mat current_frame = camera->getFrame();
+
+	// Get the cluster/voxel data.
+	vector<Reconstructor::Voxel*> voxels = reconstructor.getVisibleVoxels();
+	vector<vector<int>> clusters = reconstructor.getClusters();
+
+	vector<std::unordered_set<Point>> cluster_points;
+
+	// For each cluster, get the unique points and colors.
+	for (vector<int> cluster : clusters) {
+
+		std::unordered_set<Point> points;
+		
+		for (int voxel_id : cluster) {
+			Reconstructor::Voxel* voxel = voxels[voxel_id];
+			
+			// Check whether we want this voxel, and whether it is on screen.
+			if (voxel->z <= LOWER_GMM_LIMIT || voxel->z >= UPPER_GMM_LIMIT || !voxel->valid_camera_projection[camera_id]) {
+				continue;
+			}
+
+			Point point = voxel->camera_projection[camera_id];
+
+			// If we already got this color, skip it.
+			if (points.contains(point))
+			{
+				continue;
+			}
+
+			// Store the point in the unique set.
+			points.insert(point);
+		}
+
+		cluster_points.push_back(points);
+	}
+
+
+	// Get camera and cluster center positions.
+	Point3f cam_position = camera->getCameraLocation();
+	Point2f cam_position_2d = Point2f(cam_position.x, cam_position.y);
+	vector<Point2f> cluster_centers = reconstructor.getClusterCenters();
+
+	// Calculate the distance from the camera to each cluster center for occlusion purposes.
+	vector <pair<float, int>> cluster_cam_distances;
+	for (int cluster_id = 0; cluster_id < clusters.size(); cluster_id++) {
+
+		// Euclidean distance
+		float distance = cv::norm(cam_position_2d - cluster_centers[cluster_id]);
+		cluster_cam_distances.push_back(pair<float, int>(distance, cluster_id));
+	}
+
+	// Sort the camera distances in ascending order. We now know which clusters are the closest to the camera.
+	sort(cluster_cam_distances.begin(), cluster_cam_distances.end());
+
+	// TODO: From left to right, get the intersections of the left element and the ones on the right,
+	// then remove those shared points from the right ones. Continue until you reach the last element.
+	for (int i = 0, j = 1; j < cluster_cam_distances.size(); i++, j++) {
+		std::unordered_set<Point> left_cluster_points = cluster_points[i];
+
+		for (int k = j; k < cluster_cam_distances.size(); k++) {
+			std::unordered_set<Point> right_cluster_points = cluster_points[k];
+
+			// Loop over both sets, remove shared points from the right cluster.
+		}
+	}
+
+	// With all the sets of unique unoccluded points, gather colors and use predict.
+
+	// ----------------------------------------------------------------------------------
+	// OLD DRAWING CODE
+	// ----------------------------------------------------------------------------------
+	vector<int> clusterLabels = reconstructor.getClusterLabels();
 
 	for (size_t v = 0; v < voxels.size(); v++)
 	{
-		if (voxels[v]->z > 780 && voxels[v]->z < 1500)
+		if (voxels[v]->z > LOWER_GMM_LIMIT && voxels[v]->z < UPPER_GMM_LIMIT)
 		{
 			if (clusterLabels[v] == 0) glColor4f(0.9f, 0.1f, 0.1f, 1.0f);
 			else if (clusterLabels[v] == 1) glColor4f(0.1f, 0.9f, 0.1f, 1.0f);

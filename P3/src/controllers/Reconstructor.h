@@ -68,6 +68,16 @@ public:
 		return m_clusterLabels;
 	}
 
+	const std::vector<vector<int>>& getClusters() const
+	{
+		return m_clusters;
+	}
+
+	const std::vector<Point2f>& getClusterCenters() const
+	{
+		return m_centers;
+	}
+
 	const std::vector<Voxel*>& getVoxels() const
 	{
 		return m_voxels;
