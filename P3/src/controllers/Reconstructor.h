@@ -32,6 +32,7 @@ public:
 	};
 
 private:
+
 	const std::vector<Camera*> &m_cameras;  // vector of pointers to cameras
 	const int m_height;                     // Cube half-space height from floor to ceiling
 	const int m_step;                       // Step size (space between voxels)
@@ -100,7 +101,7 @@ public:
 	}
 
 	void cluster();
-	vector<Ptr<cv::ml::EM>> buildOfflineColorModels();
+	void buildOfflineColorModels();
 	void interpretGMM(int GMM_number, Ptr<cv::ml::EM> GMM);
 };
 

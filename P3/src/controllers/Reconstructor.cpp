@@ -13,6 +13,7 @@
 #include <opencv2/core/types_c.h>
 #include <cassert>
 #include <iostream>
+#include <filesystem>
 
 #include "../utilities/General.h"
 
@@ -31,7 +32,7 @@ Reconstructor::Reconstructor(
 		const vector<Camera*> &cs) :
 				m_cameras(cs),
 				m_height(2048),
-				m_step(64)
+				m_step(32)
 {
 	for (size_t c = 0; c < m_cameras.size(); ++c)
 	{
@@ -221,12 +222,16 @@ void Reconstructor::cluster()
 	m_clusters = clusters;
 }
 
-vector<Ptr<EM>> Reconstructor::buildOfflineColorModels()
+void Reconstructor::buildOfflineColorModels()
 {
 	int camera = 3;
 	Mat current_frame = m_cameras[camera]->getFrame();
 	Mat mask = Mat(current_frame.size(), CV_8UC3, Scalar(0, 0, 0));
-	imwrite("frame.png", current_frame);
+	if (!std::filesystem::exists("GMMS"))
+	{
+		std::filesystem::create_directory("./GMMS");
+	}
+	imwrite("GMMS/frame.png", current_frame);
 
 	cvtColor(current_frame, current_frame, CV_BGR2HSV); // convert to HSV color space
 	vector<Ptr<EM>> GMMS;
@@ -266,25 +271,23 @@ vector<Ptr<EM>> Reconstructor::buildOfflineColorModels()
 		GMM->setCovarianceMatrixType(EM::COV_MAT_SPHERICAL);
 		GMM->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
 
-		cout << "clusternumber " << GMM->getClustersNumber() << endl;
 		// train GMM
 		GMM->trainEM(colors, noArray(), noArray(), noArray());
 
 		interpretGMM(k, GMM);
 
+		GMM->save(std::format("GMMS/GMM_{}.yaml", k+1));
+
 		GMMS.push_back(GMM);
 	}
 
 	cvtColor(mask, mask, CV_HSV2BGR);
-	imwrite("masks.png", mask);
-
-	return GMMS;
+	imwrite("GMMS/masks.png", mask);
 }
 
 void Reconstructor::interpretGMM(int GMM_number, Ptr<EM> GMM)
 {
 	Mat means = GMM->getMeans();
-	cout << "means "<<  means.size() << endl;
 
 	Vec3b a = means.row(0);
 	Vec3b b = means.row(1);
@@ -297,19 +300,17 @@ void Reconstructor::interpretGMM(int GMM_number, Ptr<EM> GMM)
 	hconcat(x, y, z);
 	hconcat(z, r, p);
 	cvtColor(p, p, CV_HSV2BGR);
-	imwrite(std::format("{}.png", GMM_number), p);
+	imwrite(std::format("GMMS/cluster_{}_means.png", GMM_number + 1), p);
 	waitKey(10);
-	
-
 
 	vector<Mat> covs;
 	GMM->getCovs(covs);
 
-	FileStorage fs_means(std::format("cluster_{}_means.xml", GMM_number + 1), FileStorage::WRITE);
+	FileStorage fs_means(std::format("GMMS/cluster_{}_means.xml", GMM_number + 1), FileStorage::WRITE);
 	fs_means << "means" << means;
 	fs_means.release();
 
-	FileStorage fs_covs(std::format("cluster_{}_covs.xml", GMM_number + 1), FileStorage::WRITE);
+	FileStorage fs_covs(std::format("GMMS/cluster_{}_covs.xml", GMM_number + 1), FileStorage::WRITE);
 	for (int i = 0; i < covs.size(); i++)
 	{
 		fs_covs << std::format("covs{}", i) << covs[i];
