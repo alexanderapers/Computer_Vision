@@ -860,6 +860,7 @@ void Glut::drawVoxels()
 	int camera_id = 3;
 	Camera * camera = m_Glut->getScene3d().getCameras()[camera_id];
 	Mat current_frame = camera->getFrame();
+	Mat masks = Mat(current_frame.size(), current_frame.type(), Scalar(0, 0, 0));
 
 	// Get the cluster/voxel data.
 	vector<Reconstructor::Voxel*> voxels = reconstructor.getVisibleVoxels();
@@ -932,13 +933,24 @@ void Glut::drawVoxels()
 	{
 		for (Point p : cluster_points[z])
 		{
-			Vec3b col = { (unsigned char)(20 * z), (unsigned char)(40 * z), (unsigned char)(80 * z) };
-			current_frame.at<Vec3b>(p) = col;
+			// GET HSV COLOR
+			//Vec3b col = { (unsigned char)(20+20 * z), (unsigned char)(40 * z), (unsigned char)(80 * z) };
+			Vec3b col;
+			if (z==0)
+				col = { 255, 0, 0 };
+			if (z == 1)
+				col = { 0, 255, 0 };
+			if (z == 2)
+				col = { 0, 0, 255 };
+			if (z == 3)
+				col = { 120, 120, 0 };
+
+			masks.at<Vec3b>(p) = col;
 		}
 	}
 
-	imshow("frame", current_frame);
-	waitKey(10);
+	imshow("frame", masks);
+	waitKey(1);
 
 	// With all the sets of unique unoccluded points, gather colors and use predict.
 
