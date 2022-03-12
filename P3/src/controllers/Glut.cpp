@@ -922,8 +922,23 @@ void Glut::drawVoxels()
 			std::unordered_set<Point> right_cluster_points = cluster_points[k];
 
 			// Loop over both sets, remove shared points from the right cluster.
+			for (Point x : right_cluster_points)
+				if (left_cluster_points.contains(x))
+					right_cluster_points.erase(x);
 		}
 	}
+
+	for (int z = 0; z < cluster_points.size(); z++)
+	{
+		for (Point p : cluster_points[z])
+		{
+			Vec3b col = { (unsigned char)(20 * z), (unsigned char)(40 * z), (unsigned char)(80 * z) };
+			current_frame.at<Vec3b>(p) = col;
+		}
+	}
+
+	imshow("frame", current_frame);
+	waitKey(10);
 
 	// With all the sets of unique unoccluded points, gather colors and use predict.
 
