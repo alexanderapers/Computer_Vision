@@ -26,6 +26,9 @@
 #include <valarray>
 #include <vector>
 
+#include "../munkres.h"
+#include "../matrix.h" 
+
 #include "../utilities/General.h"
 #include "arcball.h"
 #include "Camera.h"
@@ -962,27 +965,51 @@ void Glut::drawVoxels()
 	imshow("frame", masks);
 	waitKey(1);
 
-	Mat match_matrix(4, 4, CV_32SC1);
+	//Mat match_matrix(4, 4, CV_32SC1, Scalar(0));
+	Matrix<int> match_matrix(4, 4);
+
 	vector<Ptr<cv::ml::EM>> GMMS = reconstructor.getGMMS();
 
 	for (int i = 0; i < colors.size(); i++)
 	{
 		for (int j = 0; j < colors[i].rows; j++)
 		{
-			int most_likely = INT_MIN;
+			int most_likely = -1;
+			double log_likelihood = -DBL_MAX;
 
 			for (int k = 0; k < 4; k++)
 			{
 				Vec2d likelihood = GMMS[k]->predict2(colors[i].row(j), noArray());
 
-				if (likelihood[0] > most_likely)
+				if (likelihood[0] > log_likelihood)
+				{
 					most_likely = k;
+					log_likelihood = likelihood[0];
+				}
 			}
 
-			match_matrix.at<int>(Point(i, most_likely))++;
+			//match_matrix.at<int>(Point(i, most_likely))++;
+			match_matrix(i, most_likely) = match_matrix(i, most_likely) + 1;
 		}
 	}
 
+	//cout << match_matrix << endl;
+
+	Munkres<int> munkres;
+	munkres.solve(match_matrix);
+
+	map<int, int> matching;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			if (match_matrix(i, j) == 0)
+			{
+				matching[i] = j;
+			}
+		}
+	}
+	
 
 	// With all the sets of unique unoccluded points, gather colors and use predict.
 
@@ -996,10 +1023,10 @@ void Glut::drawVoxels()
 	{
 		if (voxels[v]->z > LOWER_GMM_LIMIT && voxels[v]->z < UPPER_GMM_LIMIT)
 		{
-			if (clusterLabels[v] == 0) glColor4f(0.9f, 0.1f, 0.1f, 1.0f);
-			else if (clusterLabels[v] == 1) glColor4f(0.1f, 0.9f, 0.1f, 1.0f);
-			else if (clusterLabels[v] == 2) glColor4f(0.1f, 0.1f, 0.9f, 1.0f);
-			else if (clusterLabels[v] == 3) glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
+			if (matching[clusterLabels[v]] == 0) glColor4f(0.9f, 0.1f, 0.1f, 1.0f);
+			else if (matching[clusterLabels[v]] == 1) glColor4f(0.1f, 0.9f, 0.1f, 1.0f);
+			else if (matching[clusterLabels[v]] == 2) glColor4f(0.1f, 0.1f, 0.9f, 1.0f);
+			else if (matching[clusterLabels[v]] == 3) glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
 		}
 		else
 		{
