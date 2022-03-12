@@ -853,12 +853,12 @@ void Glut::drawVoxels()
 	glBegin(GL_POINTS);
 
 	// Retrieve the scene and reconstructor.
-	Scene3DRenderer scene3D = m_Glut->getScene3d();
-	Reconstructor reconstructor = scene3D.getReconstructor();
+	//Scene3DRenderer scene3D = m_Glut->getScene3d();
+	Reconstructor& reconstructor = m_Glut->getScene3d().getReconstructor();
 
 	// Get the camera and the current frame.
 	int camera_id = 3;
-	Camera * camera = scene3D.getCameras()[camera_id];
+	Camera * camera = m_Glut->getScene3d().getCameras()[camera_id];
 	Mat current_frame = camera->getFrame();
 
 	// Get the cluster/voxel data.
