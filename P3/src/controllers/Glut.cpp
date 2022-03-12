@@ -864,7 +864,7 @@ void Glut::drawVoxels()
 	Camera * camera = m_Glut->getScene3d().getCameras()[camera_id];
 	Mat current_frame = camera->getFrame();
 	cvtColor(current_frame, current_frame, CV_BGR2HSV); // convert to HSV
-	Mat masks = Mat(current_frame.size(), current_frame.type(), Scalar(0, 0, 0));
+	//Mat masks = Mat(current_frame.size(), current_frame.type(), Scalar(0, 0, 0));
 
 	// Get the cluster/voxel data.
 	vector<Reconstructor::Voxel*> voxels = reconstructor.getVisibleVoxels();
@@ -944,26 +944,26 @@ void Glut::drawVoxels()
 			Vec3b color = current_frame.at<Vec3b>(p);
 			Mat col(1, 3, CV_8UC1);
 
-			Vec3b mask_col;
-			if (z == 0)
-				mask_col = { 255, 0, 0 };
-			if (z == 1)
-				mask_col = { 0, 255, 0 };
-			if (z == 2)
-				mask_col = { 0, 0, 255 };
-			if (z == 3)
-				mask_col = { 120, 120, 0 };
+			//Vec3b mask_col;
+			//if (z == 0)
+			//	mask_col = { 255, 0, 0 };
+			//if (z == 1)
+			//	mask_col = { 0, 255, 0 };
+			//if (z == 2)
+			//	mask_col = { 0, 0, 255 };
+			//if (z == 3)
+			//	mask_col = { 120, 120, 0 };
 
 			for (int m = 0; m < 3; m++)
 				col.at<char>(0, m) = color[m];
 			colors[z].push_back(col);
 
-			masks.at<Vec3b>(p) = mask_col;
+			//masks.at<Vec3b>(p) = mask_col;
 		}
 	}
 
-	imshow("frame", masks);
-	waitKey(1);
+	//imshow("frame", masks);
+	//waitKey(1);
 
 	//Mat match_matrix(4, 4, CV_32SC1, Scalar(0));
 	Matrix<int> match_matrix(4, 4);
