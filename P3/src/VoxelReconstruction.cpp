@@ -251,17 +251,6 @@ void VoxelReconstruction::run(int argc, char** argv)
 		reconstructor.buildOfflineColorModels();
 		scene3d.setCurrentFrame(0);
 	}
-		
-	vector<Ptr<cv::ml::EM>> GMMS;
-	for (int i = 0; i < m_cam_views_amount; i++)
-	{
-		Ptr<cv::ml::EM> GMM = cv::Algorithm::load<cv::ml::EM>(std::format("GMMS/GMM_{}.yaml", i+1));
-		GMMS.push_back(GMM);
-	}
-
-	// GMMS READY TO BE USED
-	// example:
-	cout << GMMS[0]->getClustersNumber() << endl;
 
 	Glut glut(scene3d);
 

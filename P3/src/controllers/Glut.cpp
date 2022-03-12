@@ -860,6 +860,7 @@ void Glut::drawVoxels()
 	int camera_id = 3;
 	Camera * camera = m_Glut->getScene3d().getCameras()[camera_id];
 	Mat current_frame = camera->getFrame();
+	cvtColor(current_frame, current_frame, CV_BGR2HSV); // convert to HSV
 	Mat masks = Mat(current_frame.size(), current_frame.type(), Scalar(0, 0, 0));
 
 	// Get the cluster/voxel data.
@@ -929,30 +930,62 @@ void Glut::drawVoxels()
 		}
 	}
 
+	vector<Mat> colors(clusters.size());
+
 	for (int z = 0; z < cluster_points.size(); z++)
 	{
+		colors[z] = Mat();
+
 		for (Point p : cluster_points[z])
 		{
-			// GET HSV COLOR
-			//Vec3b col = { (unsigned char)(20+20 * z), (unsigned char)(40 * z), (unsigned char)(80 * z) };
-			Vec3b col;
-			if (z==0)
-				col = { 255, 0, 0 };
-			if (z == 1)
-				col = { 0, 255, 0 };
-			if (z == 2)
-				col = { 0, 0, 255 };
-			if (z == 3)
-				col = { 120, 120, 0 };
+			Vec3b color = current_frame.at<Vec3b>(p);
+			Mat col(1, 3, CV_8UC1);
 
-			masks.at<Vec3b>(p) = col;
+			Vec3b mask_col;
+			if (z == 0)
+				mask_col = { 255, 0, 0 };
+			if (z == 1)
+				mask_col = { 0, 255, 0 };
+			if (z == 2)
+				mask_col = { 0, 0, 255 };
+			if (z == 3)
+				mask_col = { 120, 120, 0 };
+
+			for (int m = 0; m < 3; m++)
+				col.at<char>(0, m) = color[m];
+			colors[z].push_back(col);
+
+			masks.at<Vec3b>(p) = mask_col;
 		}
 	}
 
 	imshow("frame", masks);
 	waitKey(1);
 
+	Mat match_matrix(4, 4, CV_32SC1);
+	vector<Ptr<cv::ml::EM>> GMMS = reconstructor.getGMMS();
+
+	for (int i = 0; i < colors.size(); i++)
+	{
+		for (int j = 0; j < colors[i].rows; j++)
+		{
+			int most_likely = INT_MIN;
+
+			for (int k = 0; k < 4; k++)
+			{
+				Vec2d likelihood = GMMS[k]->predict2(colors[i].row(j), noArray());
+
+				if (likelihood[0] > most_likely)
+					most_likely = k;
+			}
+
+			match_matrix.at<int>(Point(i, most_likely))++;
+		}
+	}
+
+
 	// With all the sets of unique unoccluded points, gather colors and use predict.
+
 
 	// ----------------------------------------------------------------------------------
 	// OLD DRAWING CODE

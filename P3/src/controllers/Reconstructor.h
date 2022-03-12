@@ -48,6 +48,7 @@ private:
 	std::vector<int> m_clusterLabels;
 	std::vector<Point2f> m_centers;
 	std::vector<vector<int>> m_clusters;
+	std::vector<Ptr<cv::ml::EM>> m_GMMS;
 
 	void initialize();
 
@@ -108,6 +109,20 @@ public:
 	const cv::Size& getPlaneSize() const
 	{
 		return m_plane_size;
+	}
+
+	std::vector<Ptr<cv::ml::EM>>& getGMMS()
+	{
+		vector<Ptr<cv::ml::EM>> GMMS;
+		for (int i = 0; i < 4; i++)
+		{
+			Ptr<cv::ml::EM> GMM = cv::Algorithm::load<cv::ml::EM>(std::format("GMMS/GMM_{}.yaml", i + 1));
+			GMMS.push_back(GMM);
+		}
+
+		m_GMMS = GMMS;
+
+		return m_GMMS;
 	}
 
 	void cluster();
