@@ -240,14 +240,28 @@ void VoxelReconstruction::run(int argc, char** argv)
 	scene3d.setSThreshold(29);
 	scene3d.setVThreshold(54);
 
-	// offline
-	//// use a suitable frame to build model on
-	scene3d.setCurrentFrame(518);
-	scene3d.processFrame();
-	reconstructor.update();
-	vector<Ptr<cv::ml::EM>> GMMS = reconstructor.buildOfflineColorModels();
-	scene3d.setCurrentFrame(0);
-	// offline
+	bool offline = false;
+
+	if (offline)
+	{
+		// use a suitable frame to build model on
+		scene3d.setCurrentFrame(518);
+		scene3d.processFrame();
+		reconstructor.update();
+		reconstructor.buildOfflineColorModels();
+		scene3d.setCurrentFrame(0);
+	}
+		
+	vector<Ptr<cv::ml::EM>> GMMS;
+	for (int i = 0; i < m_cam_views_amount; i++)
+	{
+		Ptr<cv::ml::EM> GMM = cv::Algorithm::load<cv::ml::EM>(std::format("GMMS/GMM_{}.yaml", i+1));
+		GMMS.push_back(GMM);
+	}
+
+	// GMMS READY TO BE USED
+	// example:
+	cout << GMMS[0]->getClustersNumber() << endl;
 
 	Glut glut(scene3d);
 
