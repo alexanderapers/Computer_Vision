@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<covs0 type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>3</cols>
+  <dt>d</dt>
+  <data>
+    4.9425651575148368e+02 0. 0. 0. 4.9425651575148368e+02 0. 0. 0.
+    4.9425651575148368e+02</data></covs0>
+<covs1 type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>3</cols>
+  <dt>d</dt>
+  <data>
+    7.1924103643935973e+02 0. 0. 0. 7.1924103643935973e+02 0. 0. 0.
+    7.1924103643935973e+02</data></covs1>
+<covs2 type_id="opencv-matrix">
+  <rows>3</rows>
+  <cols>3</cols>
+  <dt>d</dt>
+  <data>
+    2.5313461388999153e+02 0. 0. 0. 2.5313461388999153e+02 0. 0. 0.
+    2.5313461388999153e+02</data></covs2>
+</opencv_storage>
