@@ -857,7 +857,7 @@ void Glut::drawVoxels()
 
 	for (size_t v = 0; v < voxels.size(); v++)
 	{
-		if (voxels[v]->z > 750)
+		if (voxels[v]->z > 780 && voxels[v]->z < 1500)
 		{
 			if (clusterLabels[v] == 0) glColor4f(0.9f, 0.1f, 0.1f, 1.0f);
 			else if (clusterLabels[v] == 1) glColor4f(0.1f, 0.9f, 0.1f, 1.0f);

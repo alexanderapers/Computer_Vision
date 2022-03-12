@@ -31,7 +31,7 @@ Reconstructor::Reconstructor(
 		const vector<Camera*> &cs) :
 				m_cameras(cs),
 				m_height(2048),
-				m_step(128)
+				m_step(64)
 {
 	for (size_t c = 0; c < m_cameras.size(); ++c)
 	{
@@ -225,6 +225,9 @@ vector<Ptr<EM>> Reconstructor::buildOfflineColorModels()
 {
 	int camera = 3;
 	Mat current_frame = m_cameras[camera]->getFrame();
+	Mat mask = Mat(current_frame.size(), CV_8UC3, Scalar(0, 0, 0));
+	imwrite("frame.png", current_frame);
+
 	cvtColor(current_frame, current_frame, CV_BGR2HSV); // convert to HSV color space
 	vector<Ptr<EM>> GMMS;
 
@@ -239,7 +242,7 @@ vector<Ptr<EM>> Reconstructor::buildOfflineColorModels()
 		{
 			Voxel* voxel = m_visible_voxels[m_clusters[k][i]];
 
-			if (voxel->z > 750 && voxel->valid_camera_projection[camera])
+			if (voxel->z > 780 && voxel->z < 1500 && voxel->valid_camera_projection[camera])
 			{ 
 				Point point = voxel->camera_projection[camera];
 
@@ -247,8 +250,11 @@ vector<Ptr<EM>> Reconstructor::buildOfflineColorModels()
 				{
 					Vec3b color = current_frame.at<Vec3b>(point);
 					points.insert(point);
-					Mat col(1, 3, CV_8UC1, color);
+					Mat col(1, 3, CV_8UC1);
+					for (int m = 0; m < 3; m++)
+						col.at<char>(0, m) = color[m];
 					colors.push_back(col);
+					mask.at<Vec3b>(point) = col;
 				}
 			}	
 		}
@@ -256,10 +262,11 @@ vector<Ptr<EM>> Reconstructor::buildOfflineColorModels()
 		Ptr<EM> GMM = EM::create();
 
 		// set cluster numbers, covariance types and termination criteria
-		GMM->setClustersNumber(2);
+		GMM->setClustersNumber(3);
 		GMM->setCovarianceMatrixType(EM::COV_MAT_SPHERICAL);
 		GMM->setTermCriteria(TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 100, 0.1));
 
+		cout << "clusternumber " << GMM->getClustersNumber() << endl;
 		// train GMM
 		GMM->trainEM(colors, noArray(), noArray(), noArray());
 
@@ -268,23 +275,47 @@ vector<Ptr<EM>> Reconstructor::buildOfflineColorModels()
 		GMMS.push_back(GMM);
 	}
 
+	cvtColor(mask, mask, CV_HSV2BGR);
+	imwrite("masks.png", mask);
+
 	return GMMS;
 }
 
 void Reconstructor::interpretGMM(int GMM_number, Ptr<EM> GMM)
 {
 	Mat means = GMM->getMeans();
+	cout << "means "<<  means.size() << endl;
+
+	Vec3b a = means.row(0);
+	Vec3b b = means.row(1);
+	Vec3b c = means.row(2);
+	Mat x = Mat(100, 500, CV_8UC3, a);
+	Mat y = Mat(100, 500, CV_8UC3, b);
+	Mat r = Mat(100, 500, CV_8UC3, c);
+	Mat z;
+	Mat p;
+	hconcat(x, y, z);
+	hconcat(z, r, p);
+	cvtColor(p, p, CV_HSV2BGR);
+	imwrite(std::format("{}.png", GMM_number), p);
+	waitKey(10);
+	
+
+
 	vector<Mat> covs;
 	GMM->getCovs(covs);
 
 	FileStorage fs_means(std::format("cluster_{}_means.xml", GMM_number + 1), FileStorage::WRITE);
 	fs_means << "means" << means;
+	fs_means.release();
 
 	FileStorage fs_covs(std::format("cluster_{}_covs.xml", GMM_number + 1), FileStorage::WRITE);
 	for (int i = 0; i < covs.size(); i++)
 	{
 		fs_covs << std::format("covs{}", i) << covs[i];
 	}
+
+	fs_covs.release();
 }
 
 } /* namespace nl_uu_science_gmt */
