@@ -26,14 +26,16 @@
 #include <valarray>
 #include <vector>
 
-#include "../munkres.h"
-#include "../matrix.h" 
 
 #include "../utilities/General.h"
 #include "arcball.h"
 #include "Camera.h"
 #include "Reconstructor.h"
 #include "Scene3DRenderer.h"
+
+// TODO: remove this when matching is removed.
+#include <src/matching/ClusterMatching.h>
+#include <common.h>
 
 using namespace std;
 using namespace cv;
@@ -856,168 +858,172 @@ void Glut::drawVoxels()
 	glBegin(GL_POINTS);
 
 	// Retrieve the scene and reconstructor.
-	//Scene3DRenderer scene3D = m_Glut->getScene3d();
-	Reconstructor& reconstructor = m_Glut->getScene3d().getReconstructor();
+	Reconstructor* reconstructor = &(m_Glut->getScene3d().getReconstructor());
+	Scene3DRenderer * scene3D = &(m_Glut->getScene3d());
+	map<int,int> matching = ClusterMatching::match_clusters(reconstructor, scene3D);
 
-	// Get the camera and the current frame.
-	int camera_id = 3;
-	Camera * camera = m_Glut->getScene3d().getCameras()[camera_id];
-	Mat current_frame = camera->getFrame();
-	cvtColor(current_frame, current_frame, CV_BGR2HSV); // convert to HSV
-	//Mat masks = Mat(current_frame.size(), current_frame.type(), Scalar(0, 0, 0));
+	//// Get the camera and the current frame.
+	//int camera_id = 3;
+	//Camera * camera = m_Glut->getScene3d().getCameras()[camera_id];
+	//Mat current_frame = camera->getFrame();
+	//cvtColor(current_frame, current_frame, CV_BGR2HSV); // convert to HSV
+	////Mat masks = Mat(current_frame.size(), current_frame.type(), Scalar(0, 0, 0));
 
-	// Get the cluster/voxel data.
-	vector<Reconstructor::Voxel*> voxels = reconstructor.getVisibleVoxels();
-	vector<vector<int>> clusters = reconstructor.getClusters();
+	//// Get the cluster/voxel data.
+	//vector<Reconstructor::Voxel*> voxels = reconstructor.getVisibleVoxels();
+	//vector<vector<int>> clusters = reconstructor.getClusters();
 
-	vector<std::unordered_set<Point>> cluster_points;
+	//vector<std::unordered_set<Point>> cluster_points;
 
-	// For each cluster, get the unique points and colors.
-	for (vector<int> cluster : clusters) {
+	//// For each cluster, get the unique points and colors.
+	//for (vector<int> cluster : clusters) {
 
-		std::unordered_set<Point> points;
-		
-		for (int voxel_id : cluster) {
-			Reconstructor::Voxel* voxel = voxels[voxel_id];
-			
-			// Check whether we want this voxel, and whether it is on screen.
-			if (voxel->z <= LOWER_GMM_LIMIT || voxel->z >= UPPER_GMM_LIMIT || !voxel->valid_camera_projection[camera_id]) {
-				continue;
-			}
+	//	std::unordered_set<Point> points;
+	//	
+	//	for (int voxel_id : cluster) {
+	//		Reconstructor::Voxel* voxel = voxels[voxel_id];
+	//		
+	//		// Check whether we want this voxel, and whether it is on screen.
+	//		if (voxel->z <= LOWER_GMM_LIMIT || voxel->z >= UPPER_GMM_LIMIT || !voxel->valid_camera_projection[camera_id]) {
+	//			continue;
+	//		}
 
-			Point point = voxel->camera_projection[camera_id];
+	//		Point point = voxel->camera_projection[camera_id];
 
-			// If we already got this color, skip it.
-			if (points.contains(point))
-			{
-				continue;
-			}
+	//		// If we already got this color, skip it.
+	//		if (points.contains(point))
+	//		{
+	//			continue;
+	//		}
 
-			// Store the point in the unique set.
-			points.insert(point);
-		}
+	//		// Store the point in the unique set.
+	//		points.insert(point);
+	//	}
 
-		cluster_points.push_back(points);
-	}
+	//	cluster_points.push_back(points);
+	//}
 
 
-	// Get camera and cluster center positions.
-	Point3f cam_position = camera->getCameraLocation();
-	Point2f cam_position_2d = Point2f(cam_position.x, cam_position.y);
-	vector<Point2f> cluster_centers = reconstructor.getClusterCenters();
+	//// Get camera and cluster center positions.
+	//Point3f cam_position = camera->getCameraLocation();
+	//Point2f cam_position_2d = Point2f(cam_position.x, cam_position.y);
+	//vector<Point2f> cluster_centers = reconstructor.getClusterCenters();
 
-	// Calculate the distance from the camera to each cluster center for occlusion purposes.
-	vector <pair<float, int>> cluster_cam_distances;
-	for (int cluster_id = 0; cluster_id < clusters.size(); cluster_id++) {
+	//// Calculate the distance from the camera to each cluster center for occlusion purposes.
+	//vector <pair<float, int>> cluster_cam_distances;
+	//for (int cluster_id = 0; cluster_id < clusters.size(); cluster_id++) {
 
-		// Euclidean distance
-		float distance = cv::norm(cam_position_2d - cluster_centers[cluster_id]);
-		cluster_cam_distances.push_back(pair<float, int>(distance, cluster_id));
-	}
+	//	// Euclidean distance
+	//	float distance = cv::norm(cam_position_2d - cluster_centers[cluster_id]);
+	//	cluster_cam_distances.push_back(pair<float, int>(distance, cluster_id));
+	//}
 
-	// Sort the camera distances in ascending order. We now know which clusters are the closest to the camera.
-	sort(cluster_cam_distances.begin(), cluster_cam_distances.end());
+	//// Sort the camera distances in ascending order. We now know which clusters are the closest to the camera.
+	//sort(cluster_cam_distances.begin(), cluster_cam_distances.end());
 
-	// TODO: From left to right, get the intersections of the left element and the ones on the right,
-	// then remove those shared points from the right ones. Continue until you reach the last element.
-	for (int i = 0, j = 1; j < cluster_cam_distances.size(); i++, j++) {
-		std::unordered_set<Point> left_cluster_points = cluster_points[i];
+	//// TODO: From left to right, get the intersections of the left element and the ones on the right,
+	//// then remove those shared points from the right ones. Continue until you reach the last element.
+	//for (int i = 0, j = 1; j < cluster_cam_distances.size(); i++, j++) {
+	//	std::unordered_set<Point> left_cluster_points = cluster_points[i];
 
-		for (int k = j; k < cluster_cam_distances.size(); k++) {
-			std::unordered_set<Point> right_cluster_points = cluster_points[k];
+	//	for (int k = j; k < cluster_cam_distances.size(); k++) {
+	//		std::unordered_set<Point> right_cluster_points = cluster_points[k];
 
-			// Loop over both sets, remove shared points from the right cluster.
-			for (Point x : right_cluster_points)
-				if (left_cluster_points.contains(x))
-					right_cluster_points.erase(x);
-		}
-	}
+	//		// Loop over both sets, remove shared points from the right cluster.
+	//		for (Point x : right_cluster_points)
+	//			if (left_cluster_points.contains(x))
+	//				right_cluster_points.erase(x);
+	//	}
+	//}
 
-	vector<Mat> colors(clusters.size());
+	//vector<Mat> colors(clusters.size());
 
-	for (int z = 0; z < cluster_points.size(); z++)
-	{
-		colors[z] = Mat();
+	//for (int z = 0; z < cluster_points.size(); z++)
+	//{
+	//	colors[z] = Mat();
 
-		for (Point p : cluster_points[z])
-		{
-			Vec3b color = current_frame.at<Vec3b>(p);
-			Mat col(1, 3, CV_8UC1);
+	//	for (Point p : cluster_points[z])
+	//	{
+	//		Vec3b color = current_frame.at<Vec3b>(p);
+	//		Mat col(1, 3, CV_8UC1);
 
-			//Vec3b mask_col;
-			//if (z == 0)
-			//	mask_col = { 255, 0, 0 };
-			//if (z == 1)
-			//	mask_col = { 0, 255, 0 };
-			//if (z == 2)
-			//	mask_col = { 0, 0, 255 };
-			//if (z == 3)
-			//	mask_col = { 120, 120, 0 };
+	//		//Vec3b mask_col;
+	//		//if (z == 0)
+	//		//	mask_col = { 255, 0, 0 };
+	//		//if (z == 1)
+	//		//	mask_col = { 0, 255, 0 };
+	//		//if (z == 2)
+	//		//	mask_col = { 0, 0, 255 };
+	//		//if (z == 3)
+	//		//	mask_col = { 120, 120, 0 };
 
-			for (int m = 0; m < 3; m++)
-				col.at<char>(0, m) = color[m];
-			colors[z].push_back(col);
+	//		for (int m = 0; m < 3; m++)
+	//			col.at<char>(0, m) = color[m];
+	//		colors[z].push_back(col);
 
-			//masks.at<Vec3b>(p) = mask_col;
-		}
-	}
+	//		//masks.at<Vec3b>(p) = mask_col;
+	//	}
+	//}
 
-	//imshow("frame", masks);
-	//waitKey(1);
+	////imshow("frame", masks);
+	////waitKey(1);
 
-	//Mat match_matrix(4, 4, CV_32SC1, Scalar(0));
-	Matrix<int> match_matrix(4, 4);
+	////Mat match_matrix(4, 4, CV_32SC1, Scalar(0));
+	//Matrix<int> match_matrix(4, 4);
 
-	vector<Ptr<cv::ml::EM>> GMMS = reconstructor.getGMMS();
+	//vector<Ptr<cv::ml::EM>> GMMS = reconstructor.getGMMS();
 
-	for (int i = 0; i < colors.size(); i++)
-	{
-		for (int j = 0; j < colors[i].rows; j++)
-		{
-			int most_likely = -1;
-			double log_likelihood = -DBL_MAX;
+	//for (int i = 0; i < colors.size(); i++)
+	//{
+	//	for (int j = 0; j < colors[i].rows; j++)
+	//	{
+	//		int most_likely = -1;
+	//		double log_likelihood = -DBL_MAX;
 
-			for (int k = 0; k < 4; k++)
-			{
-				Vec2d likelihood = GMMS[k]->predict2(colors[i].row(j), noArray());
+	//		for (int k = 0; k < 4; k++)
+	//		{
+	//			Vec2d likelihood = GMMS[k]->predict2(colors[i].row(j), noArray());
 
-				if (likelihood[0] > log_likelihood)
-				{
-					most_likely = k;
-					log_likelihood = likelihood[0];
-				}
-			}
+	//			if (likelihood[0] > log_likelihood)
+	//			{
+	//				most_likely = k;
+	//				log_likelihood = likelihood[0];
+	//			}
+	//		}
 
-			//match_matrix.at<int>(Point(i, most_likely))++;
-			match_matrix(i, most_likely) = match_matrix(i, most_likely) + 1;
-		}
-	}
+	//		//match_matrix.at<int>(Point(i, most_likely))++;
+	//		match_matrix(i, most_likely) = match_matrix(i, most_likely) + 1;
+	//	}
+	//}
 
-	//cout << match_matrix << endl;
+	////cout << match_matrix << endl;
 
-	Munkres<int> munkres;
-	munkres.solve(match_matrix);
+	//Munkres<int> munkres;
+	//munkres.solve(match_matrix);
 
-	map<int, int> matching;
-	for (int i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 4; j++)
-		{
-			if (match_matrix(i, j) == 0)
-			{
-				matching[i] = j;
-			}
-		}
-	}
+	//map<int, int> matching;
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	for (int j = 0; j < 4; j++)
+	//	{
+	//		if (match_matrix(i, j) == 0)
+	//		{
+	//			matching[i] = j;
+	//		}
+	//	}
+	//}
 	
 
 	// With all the sets of unique unoccluded points, gather colors and use predict.
+	// Get the cluster/voxel data.
+	vector<Reconstructor::Voxel*> voxels = reconstructor->getVisibleVoxels();
+	vector<vector<int>> clusters = reconstructor->getClusters();
 
 
 	// ----------------------------------------------------------------------------------
 	// OLD DRAWING CODE
 	// ----------------------------------------------------------------------------------
-	vector<int> clusterLabels = reconstructor.getClusterLabels();
+	vector<int> clusterLabels = reconstructor->getClusterLabels();
 
 	for (size_t v = 0; v < voxels.size(); v++)
 	{

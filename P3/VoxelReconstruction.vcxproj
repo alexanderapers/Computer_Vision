@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\matching\ClusterMatching.cpp" />
     <ClCompile Include="src\background\mog2\MOG2BackgroundSubtraction.cpp" />
     <ClCompile Include="src\background\gaussian\GaussianBackgroundSubtraction.cpp" />
     <ClCompile Include="precomp.cpp">
@@ -30,6 +31,8 @@
     <ClCompile Include="src\controllers\Video.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="common.h" />
+    <ClInclude Include="src\matching\ClusterMatching.h" />
     <ClInclude Include="src\background\mog2\MOG2BackgroundSubtraction.h" />
     <ClInclude Include="src\background\gaussian\GaussianBackgroundSubtraction.h" />
     <ClInclude Include="src\background\BackgroundSubtraction.h" />
