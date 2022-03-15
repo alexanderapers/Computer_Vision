@@ -1027,17 +1027,13 @@ void Glut::drawVoxels()
 
 	for (size_t v = 0; v < voxels.size(); v++)
 	{
-		if (voxels[v]->z > LOWER_GMM_LIMIT && voxels[v]->z < UPPER_GMM_LIMIT)
-		{
-			if (matching[clusterLabels[v]] == 0) glColor4f(0.9f, 0.1f, 0.1f, 1.0f);
-			else if (matching[clusterLabels[v]] == 1) glColor4f(0.1f, 0.9f, 0.1f, 1.0f);
-			else if (matching[clusterLabels[v]] == 2) glColor4f(0.1f, 0.1f, 0.9f, 1.0f);
-			else if (matching[clusterLabels[v]] == 3) glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
-		}
-		else
-		{
-			glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
-		}
+		//if (voxels[v]->z > LOWER_GMM_LIMIT && voxels[v]->z < UPPER_GMM_LIMIT)
+
+		if (matching[clusterLabels[v]] == 0) glColor4f(0.9f, 0.1f, 0.1f, 1.0f);
+		else if (matching[clusterLabels[v]] == 1) glColor4f(0.1f, 0.9f, 0.1f, 1.0f);
+		else if (matching[clusterLabels[v]] == 2) glColor4f(0.1f, 0.1f, 0.9f, 1.0f);
+		else if (matching[clusterLabels[v]] == 3) glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
+
 
 		//glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 		glVertex3f((GLfloat) voxels[v]->x, (GLfloat) voxels[v]->y, (GLfloat) voxels[v]->z);
