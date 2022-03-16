@@ -50,9 +50,8 @@ private:
 	std::vector<vector<int>> m_clusters;
 	std::vector<Ptr<cv::ml::EM>> m_GMMS;
 
-	vector<vector<Point2f>> m_cluster_paths = { {}, {}, {}, {} };
-	vector<vector<int>> m_matched_labels = { {}, {}, {}, {} };
-
+	vector<Mat> m_cluster_paths = { Mat(), Mat(), Mat(), Mat() };
+	vector<Mat> m_cluster_paths_y = { Mat(), Mat(), Mat(), Mat() };
 
 	void initialize();
 
@@ -63,24 +62,18 @@ public:
 
 	void update();
 
-	void setMatchAndPath(int cluster_id, Point2f position, int matched_label) {
-		m_cluster_paths[cluster_id].push_back(position);
-		m_matched_labels[cluster_id].push_back(matched_label);
+	void setPath(int cluster_id, Point2f position, int matched_label) {
+		m_cluster_paths[matched_label].push_back(position);
 	}
 
-	void writeMatchAndPaths() {
+	void writePaths() {
 		for (int cluster_id = 0; cluster_id < m_clusters.size(); cluster_id++) {
-
-			FileStorage fs_paths(std::format("../../match_paths/cluster_{}_path.xml", cluster_id + 1), FileStorage::WRITE);
-			fs_paths << "paths" << m_cluster_paths[cluster_id];
+			cv::FileStorage fs_paths(std::format("paths/cluster_{}_path.xml", cluster_id + 1), cv::FileStorage::WRITE);
+			fs_paths << "positions" << m_cluster_paths[cluster_id];
 			fs_paths.release();
-
-			FileStorage fs_matching(std::format("../../match_paths/cluster_{}_matching.xml", cluster_id + 1), FileStorage::WRITE);
-			fs_matching << "matching" << m_matched_labels[cluster_id];
-			fs_matching.release();
+			cout << "Wrote path " << cluster_id << endl;
 		}
 	}
-
 
 	const std::vector<Voxel*>& getVisibleVoxels() const
 	{

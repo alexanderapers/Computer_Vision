@@ -867,18 +867,16 @@ void Glut::drawVoxels()
 	vector<Reconstructor::Voxel*> voxels = reconstructor->getVisibleVoxels();
 	vector<vector<int>> clusters = reconstructor->getClusters();
 	vector<Point2f> cluster_centers = reconstructor->getClusterCenters();
+
 	for (int cluster_id = 0; cluster_id < clusters.size(); cluster_id++ ) {
-		reconstructor->setMatchAndPath(cluster_id, cluster_centers[cluster_id], matching[cluster_id]);
+		reconstructor->setPath(cluster_id, cluster_centers[cluster_id], matching[cluster_id]);
 	}
 
-	cout << scene3D->getCurrentFrame() << " " << scene3D->getNumberOfFrames() << endl;
-	if (/*scene3D->getCurrentFrame() == scene3D->getNumberOfFrames() - 1*/ true) {
-		reconstructor->writeMatchAndPaths();
+	//cout << scene3D->getCurrentFrame() << " " << scene3D->getNumberOfFrames() << endl;
+	if (scene3D->getCurrentFrame() == scene3D->getNumberOfFrames() - 1) {
+		reconstructor->writePaths();
 	}
 
-	// ----------------------------------------------------------------------------------
-	// OLD DRAWING CODE
-	// ----------------------------------------------------------------------------------
 	vector<int> clusterLabels = reconstructor->getClusterLabels();
 
 	for (size_t v = 0; v < voxels.size(); v++)
