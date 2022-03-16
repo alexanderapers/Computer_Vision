@@ -140,15 +140,57 @@ vector<Mat> ClusterMatching::get_cluster_projection_colors(Camera* camera, vecto
 map<int, int> ClusterMatching::match_clusters(Reconstructor* reconstructor, Scene3DRenderer* scene3D) {
 
 	// Get the camera and the current frame.
-	int camera_id = 3;
-	Camera* camera = scene3D->getCameras()[camera_id];
+	vector<Camera*> cameras = scene3D->getCameras();
 
 	// Get the cluster projections, sort the clusters by distance, and then resolve occclusion.
-	vector<std::unordered_set<Point>> cluster_points = get_cluster_projections(camera_id, camera, reconstructor);
-	vector<pair<float, int>> cluster_cam_distances = sort_clusters_by_distance(camera, reconstructor);
-	resolve_occlusion(cluster_points, cluster_cam_distances);
+	vector<std::unordered_set<Point>> cluster_points_1 = get_cluster_projections(0, cameras[0], reconstructor);
+	vector<std::unordered_set<Point>> cluster_points_2 = get_cluster_projections(1, cameras[1], reconstructor);
+	vector<std::unordered_set<Point>> cluster_points_3 = get_cluster_projections(2, cameras[2], reconstructor);
+	vector<std::unordered_set<Point>> cluster_points_4 = get_cluster_projections(3, cameras[3], reconstructor);
 
-	vector<Mat> colors = get_cluster_projection_colors(camera, cluster_points);
+	vector<pair<float, int>> cluster_cam_distances_1 = sort_clusters_by_distance(cameras[0], reconstructor);
+	vector<pair<float, int>> cluster_cam_distances_2 = sort_clusters_by_distance(cameras[1], reconstructor);
+	vector<pair<float, int>> cluster_cam_distances_3 = sort_clusters_by_distance(cameras[2], reconstructor);
+	vector<pair<float, int>> cluster_cam_distances_4 = sort_clusters_by_distance(cameras[3], reconstructor);
+
+	resolve_occlusion(cluster_points_1, cluster_cam_distances_1);
+	resolve_occlusion(cluster_points_2, cluster_cam_distances_2);
+	resolve_occlusion(cluster_points_3, cluster_cam_distances_3);
+	resolve_occlusion(cluster_points_4, cluster_cam_distances_4);
+
+	vector<Mat> colors_1 = get_cluster_projection_colors(cameras[0], cluster_points_1);
+	vector<Mat> colors_2 = get_cluster_projection_colors(cameras[1], cluster_points_2);
+	vector<Mat> colors_3 = get_cluster_projection_colors(cameras[2], cluster_points_3);
+	vector<Mat> colors_4 = get_cluster_projection_colors(cameras[3], cluster_points_4);
+
+	vector<Mat> colors = { Mat(), Mat(), Mat(), Mat() };
+
+	for (int i = 0; i < 4; i++) {
+		if (!colors_1[i].empty()) {
+			colors[i] = colors_1[i];
+		}
+
+		if (colors[i].empty()) {
+			colors[i] = colors_2[i];
+		}
+		else if (!colors_2[i].empty()) {
+			cv::vconcat(colors[i], colors_2[i], colors[i]);
+		}
+
+		if (colors[i].empty()) {
+			colors[i] = colors_3[i];
+		}
+		else if (!colors_3[i].empty()) {
+			cv::vconcat(colors[i], colors_3[i], colors[i]);
+		}
+
+		if (colors[i].empty()) {
+			colors[i] = colors_4[i];
+		}
+		else if (!colors_4[i].empty()) {
+			cv::vconcat(colors[i], colors_4[i], colors[i]);
+		}
+	}
 
 	//Mat match_matrix(4, 4, CV_32SC1, Scalar(0));
 	Matrix<int> match_matrix(4, 4);
