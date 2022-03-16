@@ -7,6 +7,9 @@ def plot_positions(positions, color, i):
     plt.scatter(x, y, c=color)
     plt.scatter(x[0], y[0], c="y")
     plt.scatter(x[-1], y[-1], c="y")
+    plt.title(f"Person {i+1}")
+    plt.xlabel('x')
+    plt.ylabel('y') 
     plt.savefig(f"{i + 1}")
     plt.show()
     
@@ -17,10 +20,6 @@ def main():
         fs = cv2.FileStorage(f"../P3/paths/cluster_{i+1}_path.xml", cv2.FILE_STORAGE_READ)
         positions = fs.getNode('positions').mat()
         plot_positions(positions, colors[i], i)
-
-
-
-    
 
 if __name__ == "__main__":
     main()
