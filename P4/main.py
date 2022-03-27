@@ -23,8 +23,6 @@ def main():
     x_train = x_train.astype('float32') / 255.0
     x_test = x_test.astype('float32') / 255.0
 
-    print(x_test.shape)
-
     # # # Convert the labels using one-hot encoding.
     # y_train = to_categorical(y_train, num_classes=NUM_CLASSES)
     # y_test = to_categorical(y_test, num_classes=NUM_CLASSES)
@@ -49,8 +47,9 @@ def main():
     model.fit(x_train, y_train)
     y_pred = model.predict(x_test)
 
-    # loss = model.compute_loss(x=x_test, y=y_test, y_pred=y_pred)
-    # print(f"Total loss: {loss}")
+    test_loss, test_acc = model.evaluate(x_test,  y_test, verbose=2)
+
+    print('\nTest accuracy:', test_acc)
 
 if __name__ == "__main__":
     main()
