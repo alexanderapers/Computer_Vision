@@ -5,7 +5,6 @@ from keras.datasets import fashion_mnist
 from keras import layers, Model, Input
 from keras.utils.np_utils import to_categorical
 
-from models import BaselineModel
 # Global variables
 NUM_CLASSES = 10
 NUM_K_FOLDS = 10
@@ -35,7 +34,8 @@ def main():
     # model = BaselineModel()
 
     model = tf.keras.Sequential([
-        tf.keras.layers.Flatten(input_shape=(28, 28)),
+        tf.keras.layers.InputLayer(input_shape=(28, 28)),
+        tf.keras.layers.Flatten(),
         tf.keras.layers.Dense(128, activation='relu'),
         tf.keras.layers.Dense(10)
     ])
