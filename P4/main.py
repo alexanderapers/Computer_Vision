@@ -1,7 +1,7 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
-# TO DISABLE THE GPU, UNCOMMENT THIS LINE
+# TO DISABLE USE OF THE GPU, UNCOMMENT THIS LINE
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 import numpy as np
@@ -11,17 +11,18 @@ from tensorflow import keras
 from keras.datasets import fashion_mnist
 from keras import layers, Sequential
 from keras.utils.np_utils import to_categorical
-
+from keras.callbacks import History
 import matplotlib.pyplot as plt
 
-
+import plotting
+import metrics
 
 # Global variables
 NUM_CLASSES = 10
 NUM_K_FOLDS = 2
 LEARNING_RATE = 0.001
 BATCH_SIZE = 32
-EPOCHS = 2
+EPOCHS = 3
 
 CLASS_NAMES = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
@@ -65,7 +66,7 @@ def main():
     # K-Fold cross validation setup
     k_fold = KFold(n_splits=NUM_K_FOLDS, shuffle=True, random_state=42)
 
-    timeline = []
+    timeline : list[dict] = []
 
     for train_indices, validation_indices in k_fold.split(x_train):
 
@@ -83,40 +84,48 @@ def main():
                 metrics=['accuracy'])
 
         # Train and validate the model.
-        history = model.fit(fold_x_train, fold_y_train, 
+        history : History = model.fit(fold_x_train, fold_y_train, 
             validation_data=(fold_x_validation, fold_y_validation), 
             batch_size=BATCH_SIZE, epochs=EPOCHS)
         
-        timeline.append(history)
+        timeline.append(history.history)
 
-    
-    # Create and validate final model using all training data.
-    model = get_model()
-    opt = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
-    model.compile(optimizer=opt,
-        loss=keras.losses.CategoricalCrossentropy(from_logits=True),
-        metrics=['accuracy'])
+    metrics_history = metrics.model_metrics(timeline, ['accuracy', 'loss', 'val_loss', 'val_accuracy'])
 
-    history = model.fit(x_train, y_train, 
-        batch_size=BATCH_SIZE, epochs=EPOCHS)
+    plotting.plot_mean_metric(metrics_history['accuracy'], metrics_history['val_accuracy'], 'Baseline', 'accuracy')
+    plotting.plot_mean_metric(metrics_history['loss'], metrics_history['val_loss'], 'Baseline', 'loss')
 
-    # plt.plot(history.history['loss'])
-    # plt.plot(history.history['val_loss'])
-    # plt.title('model loss')
-    # plt.ylabel('loss')
-    # plt.xlabel('epoch')
-    # plt.legend(['train', 'test'], loc='upper left')
-    # plt.show()
+    # plotting.plot_mean_metric(mean_loss, mean_val_loss, 'Baseline', 'loss')
+    # plotting.plot_mean_metric(mean_accuracy, mean_val_accuracy, 'Baseline', 'accuracy')
+
+    # # Create and validate final model using all training data.ds
+    # model = get_model()
+    # opt = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
+    # model.compile(optimizer=opt,
+    #     loss=keras.losses.CategoricalCrossentropy(from_logits=True),
+    #     metrics=['accuracy'])
+
+    # history = model.fit(x_train, y_train, 
+    #     batch_size=BATCH_SIZE, epochs=EPOCHS)
 
     # TODO: Pick final model and test it.
     # y_pred = model.predict(x_test)
 
-    test_loss, test_acc = model.evaluate(x_test, y_test, verbose=2)
+    # test_loss, test_acc = model.evaluate(x_test, y_test, verbose=2)
 
-    print('\Test accuracy:', test_acc)
-    print('\Test loss:', test_loss)
+    # print('\Test accuracy:', test_acc)
+    # print('\Test loss:', test_loss)
 
     # print('\Validation accuracy:', validation_acc)
 
 if __name__ == "__main__":
     main()
+
+
+# plt.plot(history.history['loss'])
+# plt.plot(history.history['val_loss'])
+# plt.title('model loss')
+# plt.ylabel('loss')
+# plt.xlabel('epoch')
+# plt.legend(['train', 'test'], loc='upper left')
+# plt.show()
