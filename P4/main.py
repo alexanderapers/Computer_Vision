@@ -44,7 +44,7 @@ def main():
 
     model = tf.keras.Sequential([
         layers.InputLayer(input_shape=(28, 28, 1)), ## layer 1
-        layers.Conv2D(filters=32, kernel_size = (3, 3), strides=(2, 2), padding="same", activation='relu'), ## layer 2
+        layers.Conv2D(filters=32, kernel_size = (3, 3), strides=(1, 1), padding="same", activation='relu'), ## layer 2
         layers.MaxPool2D(pool_size=(2, 2), strides=None, padding="same"), ## layer 3
         layers.LayerNormalization(),
 
