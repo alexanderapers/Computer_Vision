@@ -4,45 +4,37 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # TO DISABLE USE OF THE GPU, UNCOMMENT THIS LINE
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-import numpy as np
 from sklearn.model_selection import KFold
 from tensorflow import keras
 
 from keras.datasets import fashion_mnist
-from keras import layers, Sequential
 from keras.utils.np_utils import to_categorical
 from keras.callbacks import History
-import matplotlib.pyplot as plt
+from keras import Sequential
 
 import plotting
+import models
 import metrics
+
+from typing import Callable
 
 # Global variables
 NUM_CLASSES = 10
 NUM_K_FOLDS = 2
 LEARNING_RATE = 0.001
 BATCH_SIZE = 32
-EPOCHS = 3
+EPOCHS = 1
 
 CLASS_NAMES = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
 
-def get_model():
-    model = Sequential([
-        layers.InputLayer(input_shape=(28, 28, 1)), ## layer 1
-        layers.Conv2D(filters=32, kernel_size = (3, 3), strides=(1, 1), padding="same", activation='relu'), ## layer 2
-        layers.MaxPool2D(pool_size=(2, 2), strides=None, padding="same"), ## layer 3
-        layers.LayerNormalization(),
-
-        layers.Conv2D(filters=64, kernel_size = (3, 3), strides=(1, 1), padding="same", activation='relu'), ## layer 4
-        layers.MaxPool2D(pool_size=(2, 2), strides=None, padding="same"), ## layer 5
-        layers.LayerNormalization(),
-
-        layers.Flatten(),
-        layers.Dense(128, activation='relu'), ## layer 6
-        layers.Dense(10) ## layer 7
-    ])
-    return model
+all_models: dict[str, Callable[[], Sequential]] = {
+    'Baseline': models.get_baseline,
+    'Variant Learning Rate': models.get_variant_learning_rate,
+    'Variant Dropout': models.get_variant_dropout,
+    'Variant Softpool': models.get_variant_softpool,
+    'Variant Leaky ReLU': models.get_variant_activation
+}
 
 def main():
     # Load the train and test sets with labels.
@@ -67,33 +59,37 @@ def main():
     k_fold = KFold(n_splits=NUM_K_FOLDS, shuffle=True, random_state=42)
 
     timeline : list[dict] = []
+    model_metrics = {}
 
-    for train_indices, validation_indices in k_fold.split(x_train):
-
-        # Get training data from split for this fold.
-        fold_x_train, fold_y_train = x_train[train_indices], y_train[train_indices]
-
-        # Get validation data from split for this fold.
-        fold_x_validation, fold_y_validation = x_train[validation_indices], y_train[validation_indices]
-
-        # Redefine the model for the current fold.
-        model = get_model()
-        opt = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
-        model.compile(optimizer=opt,
-                loss=keras.losses.CategoricalCrossentropy(from_logits=True),
-                metrics=['accuracy'])
-
-        # Train and validate the model.
-        history : History = model.fit(fold_x_train, fold_y_train, 
-            validation_data=(fold_x_validation, fold_y_validation), 
-            batch_size=BATCH_SIZE, epochs=EPOCHS)
+    for model_label, model_getter in all_models.items():
+        print(f"\nStarting K={NUM_K_FOLDS}-fold validation of {model_label}")
         
-        timeline.append(history.history)
+        fold = 1
+        for train_indices, validation_indices in k_fold.split(x_train):
+            print(f"\nFold {fold}/{NUM_K_FOLDS}\n")
 
-    metrics_history = metrics.model_metrics(timeline, ['accuracy', 'loss', 'val_loss', 'val_accuracy'])
+            # Get training data from split for this fold.
+            fold_x_train, fold_y_train = x_train[train_indices], y_train[train_indices]
 
-    plotting.plot_mean_metric(metrics_history['accuracy'], metrics_history['val_accuracy'], 'Baseline', 'accuracy')
-    plotting.plot_mean_metric(metrics_history['loss'], metrics_history['val_loss'], 'Baseline', 'loss')
+            # Get validation data from split for this fold.
+            fold_x_validation, fold_y_validation = x_train[validation_indices], y_train[validation_indices]
+
+            # Redefine the model for the current fold.
+            model = model_getter()
+            
+            # Train and validate the model.
+            history : History = model.fit(fold_x_train, fold_y_train, 
+                validation_data=(fold_x_validation, fold_y_validation), 
+                batch_size=BATCH_SIZE, epochs=EPOCHS)
+            
+            timeline.append(history.history)
+
+        metrics_history = metrics.model_metrics(timeline, ['accuracy', 'loss', 'val_loss', 'val_accuracy'])
+        model_metrics = 
+        plotting.plot_mean_metric(metrics_history['accuracy'], metrics_history['val_accuracy'], model_label, 'accuracy')
+        plotting.plot_mean_metric(metrics_history['loss'], metrics_history['val_loss'], model_label, 'loss')
+
+    
 
     # plotting.plot_mean_metric(mean_loss, mean_val_loss, 'Baseline', 'loss')
     # plotting.plot_mean_metric(mean_accuracy, mean_val_accuracy, 'Baseline', 'accuracy')
@@ -120,12 +116,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-# plt.plot(history.history['loss'])
-# plt.plot(history.history['val_loss'])
-# plt.title('model loss')
-# plt.ylabel('loss')
-# plt.xlabel('epoch')
-# plt.legend(['train', 'test'], loc='upper left')
-# plt.show()

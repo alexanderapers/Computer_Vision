@@ -9,9 +9,9 @@ def plot_mean_metric(training_metrics, validation_metrics, model_label, metric_l
     validation_mean = validation_metrics['mean']
     validation_std = validation_metrics['std']
 
-    plt.errorbar(epochs, training_mean, training_std, fmt='-o')
+    plt.errorbar(epochs, training_mean, training_std, capsize=4)
 
-    plt.errorbar(epochs, validation_mean, validation_std, fmt='-o')
+    plt.errorbar(epochs, validation_mean, validation_std, capsize=4)
 
     # plt.plot(training_mean)
     
@@ -21,5 +21,6 @@ def plot_mean_metric(training_metrics, validation_metrics, model_label, metric_l
     plt.xlabel('epoch')
     plt.xticks(epochs, labels=[f'{i + 1}' for i in epochs])
     plt.legend(['train', 'validation'], loc='upper left')
+    plt.savefig(f"metrics/{model_label}_{metric_label}")
     plt.show()
 
