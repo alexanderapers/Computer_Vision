@@ -30,3 +30,14 @@ def store_final_accuracy(final_metrics, filename):
         training, validation = accuracies
         # write every key and value to file
         w.writerow([model_label, training, validation])
+
+def store_best_epoch(best_epochs):
+    # open file for writing, "w" is writing
+    w = csv.writer(open(f"best_epochs.csv", "w"))
+
+    w.writerow(['Model', 'Mean training accuracy'])
+
+    # loop over dictionary keys and values
+    for model_label, epoch in best_epochs.items():
+        # write every key and value to file
+        w.writerow([model_label, epoch])
