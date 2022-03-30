@@ -1,0 +1,12 @@
+Model,Mean training accuracy
+
+Baseline,9
+
+Variant_Learning Rate,7
+
+Variant_Dropout,10
+
+Variant_Softpool,9
+
+Variant_Leaky_ReLU,10
+

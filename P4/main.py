@@ -6,6 +6,9 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 from sklearn.model_selection import KFold
+from sklearn.metrics import ConfusionMatrixDisplay
+
+import tensorflow as tf
 from tensorflow import keras
 
 from keras.datasets import fashion_mnist
@@ -20,7 +23,7 @@ from typing import Callable
 import plotting
 import models
 import metrics
-from learning_rate_scheduler import scheduler
+from learning_rate_scheduler import halving_scheduler
 
 # Global variables
 NUM_CLASSES = 10
@@ -60,37 +63,71 @@ def get_datasets():
     y_test = to_categorical(y_test, num_classes=NUM_CLASSES)
     return (x_train, y_train), (x_test, y_test)
 
-def train_final_models():
+# Train two models and report their final accuracy and loss metrics
+def train_final_models(label_1 = 'Baseline', label_2 = 'Variant_Learning Rate'):
     print("Training final models")
 
-    (x_train, y_train), (x_test, y_test) = get_datasets()
+    datasets = get_datasets()
 
     # Get two new models of the best two variant models.
-    model_softpool = all_models['Variant_Softpool']()
-    model_leaky_relu = all_models['Variant_Leaky_ReLU']()
+    train_model(label_2, datasets)
+    halving_callback = tf.keras.callbacks.LearningRateScheduler(halving_scheduler)
+    # Confusion matrix messes up plotting so we do that last
+    train_model(label_1, datasets, callbacks=[halving_callback])
+    train_model(label_1, datasets, confusion_matrix=True)
+
+
+# Train one model and report testing accuracy and loss.
+def train_model(label, datasets, callbacks=[], confusion_matrix=False):
+    (x_train, y_train), (x_test, y_test) = datasets
+
+    # Get two new models of the best two variant models.
+    model = all_models[label]()
 
     # Fit both models
-    history_softpool = model_softpool.fit(x_train, y_train, 
+    history = model.fit(x_train, y_train,
+        validation_data=(x_test, y_test),
+        callbacks=callbacks,
         batch_size=BATCH_SIZE, epochs=EPOCHS)
-    history_leaky_relu = model_leaky_relu.fit(x_train, y_train, 
-        batch_size=BATCH_SIZE, epochs=EPOCHS)
+
+    # Plot accuracy and loss
+    plot_label = label if len(callbacks) == 0 else f"Halved_LR_{label}"
+
+    plotting.plot_history_metric(history, plot_label, 'accuracy', bottom=0.7)
+    plotting.plot_history_metric(history, plot_label, 'loss', top=0.7)
+
+    # Optionally plot confusion matrix
+    if confusion_matrix == True:
+        create_confusion_matrix(model, plot_label)
     
     # Predict y values and evaluate
-    loss_softpool, acc_softpool = model_softpool.evaluate(x_test, y_test, verbose=2)
-    loss_leaky_relu, acc_leaky_relu = model_leaky_relu.evaluate(x_test, y_test, verbose=2)
+    loss, acc = model.evaluate(x_test, y_test, verbose=2)
 
-    print('\Softpool test accuracy:', acc_softpool)
-    print('\Softpool test loss:', loss_softpool)
+    print(f'{plot_label} test accuracy:', acc)
+    print(f'{plot_label} test loss:', loss)
 
-    print('\Leaky ReLU test accuracy:', acc_leaky_relu)
-    print('\Leaky ReLU test loss:', loss_leaky_relu)
+    folder = "./final_weights"
+    model.save_weights(f"{folder}/{plot_label}.ckpt")
 
-    # print('\Validation accuracy:', validation_acc)
+    return history
 
+# Plot confusion matrix
+def create_confusion_matrix(model : Sequential, model_label):
+    x_test, y_test = get_datasets()[1]
 
+    y_pred = model.predict(x_test, BATCH_SIZE)
+
+    y_pred = np.argmax(y_pred, 1)
+    y_test = np.argmax(y_test, 1)
+
+    print(f"Creating confusion matrix for {model_label}")
+    plotting.plot_confusion_matrix(y_pred, y_test, model_label, CLASS_NAMES)
+    
+# Trains all model variants using k-fold cross validation
 def train_initial_models():
+
     # Load the train and test sets with labels.
-    (x_train, y_train) = get_datasets()[0]
+    x_train, y_train = get_datasets()[0]
 
     # K-Fold cross validation setup
     k_fold = KFold(n_splits=NUM_K_FOLDS, shuffle=True, random_state=RANDOM_STATE)
