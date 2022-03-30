@@ -21,6 +21,8 @@ def plot_mean_metric(training_metrics, validation_metrics, model_label, metric_l
     plt.xlabel('epoch')
     plt.xticks(epochs, labels=[f'{i + 1}' for i in epochs])
     plt.legend(['train', 'validation'], loc='upper left')
+    plt.grid(visible=True, which='major', axis='y')
     plt.savefig(f"metrics/{model_label}_{metric_label}")
-    plt.show()
+    plt.clf()
+    plt.cla()
 
