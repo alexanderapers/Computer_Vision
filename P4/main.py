@@ -6,7 +6,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 from sklearn.model_selection import KFold
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay
 
 import tensorflow as tf
 from tensorflow import keras
@@ -23,7 +23,7 @@ from typing import Callable
 import plotting
 import models
 import metrics
-# from learning_rate_scheduler import scheduler
+from learning_rate_scheduler import halving_scheduler
 
 # Global variables
 NUM_CLASSES = 10
@@ -70,11 +70,15 @@ def train_final_models(label_1 = 'Baseline', label_2 = 'Variant_Learning Rate'):
     datasets = get_datasets()
 
     # Get two new models of the best two variant models.
-    train_model(label_1, datasets)
     train_model(label_2, datasets)
+    halving_callback = tf.keras.callbacks.LearningRateScheduler(halving_scheduler)
+    # Confusion matrix messes up plotting so we do that last
+    train_model(label_1, datasets, callbacks=[halving_callback])
+    train_model(label_1, datasets, confusion_matrix=True)
+
 
 # Train one model and report testing accuracy and loss.
-def train_model(label, datasets):
+def train_model(label, datasets, callbacks=[], confusion_matrix=False):
     (x_train, y_train), (x_test, y_test) = datasets
 
     # Get two new models of the best two variant models.
@@ -83,33 +87,42 @@ def train_model(label, datasets):
     # Fit both models
     history = model.fit(x_train, y_train,
         validation_data=(x_test, y_test),
+        callbacks=callbacks,
         batch_size=BATCH_SIZE, epochs=EPOCHS)
 
     # Plot accuracy and loss
-    plotting.plot_history_metric(history, label, 'accuracy', bottom=0.7)
-    plotting.plot_history_metric(history, label, 'loss', top=0.7)
+    plot_label = label if len(callbacks) == 0 else f"Halved_LR_{label}"
+
+    plotting.plot_history_metric(history, plot_label, 'accuracy', bottom=0.7)
+    plotting.plot_history_metric(history, plot_label, 'loss', top=0.7)
+
+    # Optionally plot confusion matrix
+    if confusion_matrix == True:
+        create_confusion_matrix(model, plot_label)
     
     # Predict y values and evaluate
     loss, acc = model.evaluate(x_test, y_test, verbose=2)
 
-    print(f'{label} test accuracy:', acc)
-    print(f'{label} test loss:', loss)
+    print(f'{plot_label} test accuracy:', acc)
+    print(f'{plot_label} test loss:', loss)
 
     folder = "./final_weights"
-    model.save_weights(f"{folder}/{label}.ckpt")
+    model.save_weights(f"{folder}/{plot_label}.ckpt")
 
     return history
 
 # Plot confusion matrix
-def plot_confusion_matrix(model : Sequential, model_label):
+def create_confusion_matrix(model : Sequential, model_label):
     x_test, y_test = get_datasets()[1]
 
     y_pred = model.predict(x_test, BATCH_SIZE)
 
-    print(f"Creating confusion matrix for {model_label}")
-    
-    confusion_matrix(y_test, y_pred, labels=CLASS_NAMES, normalize=True)
+    y_pred = np.argmax(y_pred, 1)
+    y_test = np.argmax(y_test, 1)
 
+    print(f"Creating confusion matrix for {model_label}")
+    plotting.plot_confusion_matrix(y_pred, y_test, model_label, CLASS_NAMES)
+    
 # Trains all model variants using k-fold cross validation
 def train_initial_models():
 
