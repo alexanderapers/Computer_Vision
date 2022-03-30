@@ -19,9 +19,9 @@ def model_metrics(timeline, labels):
 
     return metrics_dict
 
-def store_final_accuracy(final_metrics):
+def store_final_accuracy(final_metrics, filename):
     # open file for writing, "w" is writing
-    w = csv.writer(open("output.csv", "w"))
+    w = csv.writer(open(f"{filename}.csv", "w"))
 
     w.writerow(['Model', 'Mean training accuracy', 'Mean validation accuracy'])
 
