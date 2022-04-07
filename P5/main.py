@@ -13,6 +13,8 @@ def main():
     stanford_train_files, stanford_validation_files, stanford_test_files = load_data.load_stanford(
         stanford_train[0], stanford_validation[0], stanford_test[0])
 
+    #load_data.load_tvhi()
+
 
 
 
