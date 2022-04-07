@@ -1,6 +1,6 @@
 import os
 import cv2
-from cv2 import waitKey
+import tensorflow as tf
 import numpy as np
 from tqdm import tqdm
 
@@ -31,7 +31,7 @@ def __get_stanford_files(file_names, set_name, overwrite=False):
         preprocessed_files = __preprocess_stanford_files(raw_img_path, file_names, set_name)
         np.save(preprocessed_file_path, preprocessed_files)
 
-    return preprocessed_files
+    return tf.convert_to_tensor(preprocessed_files, dtype=float)
 
 def __preprocess_stanford_files(folder_path, file_names, set_name): 
     # files = [cv2.imread(os.path.join(folder_path, file_name)) for file_name in file_names]
