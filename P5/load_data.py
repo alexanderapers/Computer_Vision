@@ -23,30 +23,22 @@ def load_tvhi(train_file_names, validation_file_names, test_file_names):
     for file_name in train_file_names:
 
         cap, frames = get_videocap(os.path.join(folder_path, file_name))
-        print(frames)
 
-        #frame = get_frame(cap, 500)
-        #cv2.imshow("frame", frame)
-        #cv2.waitKey(0)
-
-
-
+        # TODO get frames using get_frame
+        # frames gives the number of frames in a video
         cap.release()
         break
 
-def manual_frame_count(video):
-    # frames = 0
-    # while True:
-    #     status, _ = video.read()
-    #     if not status:
-    #         print("thats weird")
-    #     frames += 1
-    #
-    # return frames
+def count_frames_manual(video):
+    i = 0
+    while True:
+        video.set(0, i)
+        ret, frame = video.read()
 
-    return video.get(cv2.CV_CAP_PROP_FRAME_COUNT)
-
-    #return video.
+        if not ret:
+            break
+        i += 1
+    return i
 
 
 def get_videocap(file_path_name):
@@ -56,7 +48,7 @@ def get_videocap(file_path_name):
         print("could not open :", file_path_name)
         return
 
-    frames = manual_frame_count(cap)
+    frames = count_frames_manual(cap)
 
     return (cap, frames)
 
