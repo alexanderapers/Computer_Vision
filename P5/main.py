@@ -1,11 +1,9 @@
 import cv2
+from sklearn.model_selection import train_test_split
 
 def main():
     stanford_train, stanford_test, stanford_classes = process_stanford40()
     TVHI_train, TVHI_test, TVHI_classes = process_TVHI()
-
-    print(len(TVHI_train[0]))
-    print(len(TVHI_test[0]))
 
 
 def process_stanford40():
