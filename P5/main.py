@@ -10,10 +10,11 @@ def main():
     TVHI_train, TVHI_validation, TVHI_test, TVHI_classes = files.process_TVHI()
 
     # get the actual list of files for train, validation and test from stanford dataset from the file names
-    stanford_train_files, stanford_validation_files, stanford_test_files = load_data.load_stanford(
-        stanford_train[0], stanford_validation[0], stanford_test[0])
+    #stanford_train_files, stanford_validation_files, stanford_test_files = load_data.load_stanford(
+    #    stanford_train[0], stanford_validation[0], stanford_test[0])
 
-    #load_data.load_tvhi()
+    #load_data.load_tvhi(TVHI_train[0], TVHI_validation[0], TVHI_test[0])
+
 
 
 
