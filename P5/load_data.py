@@ -25,6 +25,8 @@ def load_stanford():
     preprocessed_img_path = r"Stanford40/PreprocessedImages/"
     train_path, val_path, test_path = get_dataset_paths(preprocessed_img_path)
 
+    # TODO: fix problem that this is loading images from directory in whatever order when y order is not the same, possible
+    # TODO: solution is to use subdirectories per class after all and
     train_set = image_dataset_from_directory(train_path, labels=train_y, batch_size=BATCH_SIZE, shuffle=False, image_size=(224,224))
     val_set = image_dataset_from_directory(val_path, labels=val_y, batch_size=BATCH_SIZE, shuffle=False, image_size=(224,224))
     test_set = image_dataset_from_directory(test_path, labels=test_y, batch_size=BATCH_SIZE, shuffle=False, image_size=(224,224))
