@@ -1,4 +1,3 @@
-import files
 import load_data
 import os
 from models import stanford40_model
@@ -20,7 +19,8 @@ def main():
         # X shape is (batch_size, img_height, img_width, channels)
         # y is a list of labels (integers) shape (batch_size)
         X, y = batch
-
+        print(X.shape)
+        print(y.shape)
         break
     #    print(x, y)
     # s40_num_classes = len(s40_classes)
