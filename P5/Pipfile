@@ -8,6 +8,7 @@ opencv-python = "*"
 scikit-learn = "*"
 tqdm = "*"
 tensorflow = "*"
+matplotlib = "*"
 
 [dev-packages]
 

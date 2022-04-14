@@ -31,9 +31,9 @@ def get_model():
         layers.Dense(4096),
         layers.Dropout(rate=0.5),
 
-        # Full7
-        layers.Dense(2048),
-        layers.Dropout(rate=0.5),
+        # # Full7
+        # layers.Dense(2048),
+        # layers.Dropout(rate=0.5),
 
         # Output
         # TODO: Use NUM_CLASSES value.
