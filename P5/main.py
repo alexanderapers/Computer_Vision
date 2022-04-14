@@ -1,7 +1,10 @@
 import files
 import load_data
+import os
 from models import stanford40_model
 from keras.utils.np_utils import to_categorical
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def main():
     # gathers the two datasets file names and class labels
@@ -12,8 +15,14 @@ def main():
 
     # get the actual list of files for train, validation and test from stanford dataset from the file names
     s40_train_files, s40_val_files, s40_test_files = load_data.load_stanford()
-    for x, y in s40_train_files:
-        print(x, y)
+
+    for batch in s40_train_files:
+        # X shape is (batch_size, img_height, img_width, channels)
+        # y is a list of labels (integers) shape (batch_size)
+        X, y = batch
+
+        break
+    #    print(x, y)
     # s40_num_classes = len(s40_classes)
     # s40_train_y = to_categorical(s40_train_y, num_classes=s40_num_classes)
     # s40_val_y = to_categorical(s40_val_y, num_classes=s40_num_classes)

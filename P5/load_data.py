@@ -9,6 +9,7 @@ from keras.preprocessing.image import load_img, save_img, image_dataset_from_dir
 
 BATCH_SIZE = 32
 
+
 def get_dataset_paths(img_path):
     img_path = r"Stanford40/PreprocessedImages/"
     train_path = join(img_path, r"Train")
@@ -16,11 +17,11 @@ def get_dataset_paths(img_path):
     test_path = join(img_path, r"Test")
     return train_path, val_path, test_path
 
-def load_stanford():
 
+def load_stanford():
     # Gather train/validation/test splits
     (train_x, train_y), (val_x, val_y), (test_x, test_y), classes = __get_stanford40_splits()
-    print(train_x[0], train_y[0])
+
     # Preprocess dataset (if it hasn't been already)
     __preprocess_stanford40(train_x, val_x, test_x)
 
@@ -34,20 +35,20 @@ def load_stanford():
     return train_set, val_set, test_set
 
 
-
 def load_tvhi(train_file_names, validation_file_names, test_file_names):
     folder_path = r"TV-HI/tv_human_interactions_videos"
 
     for file_name in train_file_names:
 
-        cap, frames = get_videocap(os.path.join(folder_path, file_name))
+        cap, frames = __get_videocap(os.path.join(folder_path, file_name))
 
         # TODO get frames using get_frame
         # frames gives the number of frames in a video
         cap.release()
         break
 
-def count_frames_manual(video):
+
+def __count_frames_manual(video):
     i = 0
     while True:
         video.set(0, i)
@@ -59,18 +60,19 @@ def count_frames_manual(video):
     return i
 
 
-def get_videocap(file_path_name):
+def __get_videocap(file_path_name):
     cap = cv2.VideoCapture(file_path_name)
 
     if not cap.isOpened():
         print("could not open :", file_path_name)
         return
 
-    frames = count_frames_manual(cap)
+    frames = __count_frames_manual(cap)
 
-    return (cap, frames)
+    return cap, frames
 
-def get_frame(video, frame_number):
+
+def __get_frame(video, frame_number):
     video.set(0, frame_number)
     ret, frame = video.read()
 
@@ -78,6 +80,7 @@ def get_frame(video, frame_number):
         print("frame could not be found")
 
     return frame
+
 
 def __get_stanford40_splits():
     with open('Stanford40/ImageSplits/actions.txt') as f:
@@ -102,7 +105,7 @@ def __get_stanford40_splits():
 
         test = (test_files, test_labels)
 
-    return (train, validation, test, action_categories)
+    return train, validation, test, action_categories
 
 
 def __preprocess_stanford40(train_split, val_split, test_split):
@@ -110,7 +113,6 @@ def __preprocess_stanford40(train_split, val_split, test_split):
     preprocessed_img_path = r"Stanford40/PreprocessedImages/"
     train_path, val_path, test_path = get_dataset_paths(preprocessed_img_path)
 
-    
     # If the preprocessed directory exists, do nothing. Otherwise, create it and start preprocessing images.
     preprocessed_dir = os.path.isdir(preprocessed_img_path)
     if not preprocessed_dir:
@@ -130,7 +132,8 @@ def __preprocess_stanford40_split(img_path, split_path, split_filenames):
     for filename in split_filenames:
         img = load_img(join(img_path, filename))
         img = tf.image.resize(img, (224,224))
-        save_img(join(split_path, filename), img)
+        save_img(join(join(split_path, r"JPEGImages"), filename), img)
+
 
 def __process_TVHI():
     set_1_indices = [[2,14,15,16,18,19,20,21,24,25,26,27,28,32,40,41,42,43,44,45,46,47,48,49,50],
@@ -147,16 +150,16 @@ def __process_TVHI():
     # test set
     set_1 = [f'{classes[c]}_{i:04d}.avi' for c in range(len(classes)) for i in set_1_indices[c]]
     set_1_label = [f'{classes[c]}' for c in range(len(classes)) for i in set_1_indices[c]]
-    #print(f'Set 1 to be used for test ({len(set_1)}):\n\t{set_1}')
-    #print(f'Set 1 labels ({len(set_1_label)}):\n\t{set_1_label}\n')
+    # print(f'Set 1 to be used for test ({len(set_1)}):\n\t{set_1}')
+    # print(f'Set 1 labels ({len(set_1_label)}):\n\t{set_1_label}\n')
 
     test = (set_1, set_1_label)
 
     # training set
     set_2 = [f'{classes[c]}_{i:04d}.avi' for c in range(len(classes)) for i in set_2_indices[c]]
     set_2_label = [f'{classes[c]}' for c in range(len(classes)) for i in set_2_indices[c]]
-    #print(f'Set 2 to be used for train and validation ({len(set_2)}):\n\t{set_2}')
-    #print(f'Set 2 labels ({len(set_2_label)}):\n\t{set_2_label}')
+    # print(f'Set 2 to be used for train and validation ({len(set_2)}):\n\t{set_2}')
+    # print(f'Set 2 labels ({len(set_2_label)}):\n\t{set_2_label}')
 
     # Use 10% of training data for validation, use stratification
     train_files, validation_files, train_labels, validation_labels = train_test_split(
@@ -166,4 +169,4 @@ def __process_TVHI():
     train = (train_files, train_labels)
     validation = (validation_files, validation_labels)
 
-    return (train, validation, test, classes)
+    return train, validation, test, classes
