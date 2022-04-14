@@ -43,7 +43,7 @@ def get_model():
     model = Sequential(model_layers)
     opt = keras.optimizers.Adam(learning_rate=0.001)
     model.compile(optimizer=opt,
-            loss=keras.losses.CategoricalCrossentropy(from_logits=True),
+            loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
             metrics=['accuracy'])
 
     return model
