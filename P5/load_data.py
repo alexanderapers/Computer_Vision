@@ -6,7 +6,7 @@ from files import get_stanford40_splits, get_tvhi_splits
 from video_cap import write_video, load_video
 from tqdm import tqdm
 
-BATCH_SIZE = 32
+BATCH_SIZE = 8
 
 
 def get_dataset_paths(files_path):

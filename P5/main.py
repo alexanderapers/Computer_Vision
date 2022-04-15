@@ -5,6 +5,7 @@ import tensorflow as tf
 from models import stanford40_model
 from keras.utils.np_utils import to_categorical
 import plotting
+from learning_rate_scheduler import halving_scheduler
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -19,6 +20,13 @@ def main():
     # plotting.plot_history_metric(history, "Stanford 40", "accuracy")
     # plotting.plot_history_metric(history, "Stanford 40", "loss")
 
+    model = stanford40_model.get_model()
+    history = model.fit(s40_train,
+        validation_data=s40_val, batch_size=8, epochs=15,
+        callbacks=[tf.keras.callbacks.LearningRateScheduler(halving_scheduler)])
+
+    plotting.plot_history_metric(history, "Stanford 40", "accuracy")
+    plotting.plot_history_metric(history, "Stanford 40", "loss")
     load_data.load_tvhi()
 
     # load_data.load_tvhi(TVHI_train[0], TVHI_validation[0], TVHI_test[0])

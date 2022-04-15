@@ -7,6 +7,7 @@ def get_model():
         # TODO: do a simple normalisation for each image
 
         layers.InputLayer(input_shape=(224, 224, 3)),
+        tf.keras.layers.Rescaling(1./255),
         
         # Conv1
         layers.Conv2D(filters=96, kernel_size=7, strides=2, padding="same", activation='relu'),
@@ -14,17 +15,22 @@ def get_model():
         layers.MaxPool2D(pool_size=(3, 3), strides=2, padding="same"),
 
         # Conv2
-        layers.Conv2D(filters=256, kernel_size=5, strides=2, padding="same", activation='relu'),
+        layers.Conv2D(filters=256, kernel_size=5, strides=3, padding="same", activation='relu'),
         layers.BatchNormalization(),
         layers.MaxPool2D(pool_size=(3, 3), strides=2, padding="same"),
 
         # Conv3
-        layers.Conv2D(filters=512, kernel_size=3, strides=1, padding="same", activation='relu'),
+        layers.Conv2D(filters=512, kernel_size=3, strides=3, padding="same", activation='relu'),
+        layers.BatchNormalization(),
+        layers.MaxPool2D(pool_size=(3, 3), strides=2, padding="same"),
+
         # Conv4
-        layers.Conv2D(filters=512, kernel_size=3, strides=1, padding="same", activation='relu'),
+        layers.Conv2D(filters=512, kernel_size=3, strides=3, padding="same", activation='relu'),
+        layers.BatchNormalization(),
+        layers.MaxPool2D(pool_size=(3, 3), strides=2, padding="same"),
 
         # Conv5
-        layers.Conv2D(filters=512, kernel_size=3, strides=1, padding="same", activation='relu'),
+        layers.Conv2D(filters=512, kernel_size=3, strides=3, padding="same", activation='relu'),
         layers.MaxPool2D(pool_size=(3, 3), strides=2, padding="same"),
         layers.Flatten(),
 
@@ -34,7 +40,8 @@ def get_model():
         # layers.Dropout(rate=0.5),
 
         # Full7
-        layers.Dense(160),
+
+        layers.Dense(80),
         layers.Dropout(rate=0.5),
 
         # Output
@@ -43,7 +50,7 @@ def get_model():
     ]
 
     model = Sequential(model_layers)
-    opt = keras.optimizers.Adam(learning_rate=0.0005)
+    opt = keras.optimizers.Adam(learning_rate=0.001)
     model.compile(optimizer=opt,
             loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
             metrics=['accuracy'])
