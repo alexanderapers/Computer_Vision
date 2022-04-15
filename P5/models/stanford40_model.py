@@ -29,12 +29,12 @@ def get_model():
         layers.Flatten(),
 
 
-        # Full6
-        layers.Dense(4096),
-        layers.Dropout(rate=0.5),
+        # # Full6
+        # layers.Dense(4096),
+        # layers.Dropout(rate=0.5),
 
         # Full7
-        layers.Dense(2048),
+        layers.Dense(160),
         layers.Dropout(rate=0.5),
 
         # Output
@@ -43,7 +43,7 @@ def get_model():
     ]
 
     model = Sequential(model_layers)
-    opt = keras.optimizers.Adam(learning_rate=0.001)
+    opt = keras.optimizers.Adam(learning_rate=0.0005)
     model.compile(optimizer=opt,
             loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
             metrics=['accuracy'])
