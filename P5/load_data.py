@@ -29,7 +29,9 @@ def load_stanford():
     val_set = image_dataset_from_directory(val_path, labels="inferred", class_names=classes, batch_size=BATCH_SIZE, seed=42, image_size=(224,224))
     test_set = image_dataset_from_directory(test_path, labels="inferred", class_names=classes, batch_size=BATCH_SIZE, seed=42, image_size=(224,224))
 
-    return train_set, val_set, test_set
+    class_dict = { label: idx for idx, label in enumerate(classes) }
+
+    return train_set, val_set, test_set, class_dict
 
 
 def load_tvhi(train_file_names, validation_file_names, test_file_names):
