@@ -5,11 +5,12 @@ def get_stanford40_splits():
     with open('Stanford40/ImageSplits/actions.txt') as f:
         action_categories = f.readlines()[1:]
         action_categories = [action.split()[0] for action in action_categories]
-        action_dict = { action: idx for idx, action in enumerate(action_categories) }
+        #action_dict = { action: idx for idx, action in enumerate(action_categories) }
 
     with open('Stanford40/ImageSplits/train.txt', 'r') as f:
         train_files = list(map(str.strip, f.readlines()))
-        train_labels = [action_dict['_'.join(name.split('_')[:-1])] for name in train_files]
+        #train_labels = [action_dict['_'.join(name.split('_')[:-1])] for name in train_files]
+        train_labels = ['_'.join(name.split('_')[:-1]) for name in train_files]
 
         train_files, validation_files, train_labels, validation_labels = train_test_split(
             train_files, train_labels, train_size=0.9, random_state=42,
@@ -20,7 +21,8 @@ def get_stanford40_splits():
 
     with open('Stanford40/ImageSplits/test.txt', 'r') as f:
         test_files = list(map(str.strip, f.readlines()))
-        test_labels = [action_dict['_'.join(name.split('_')[:-1])] for name in test_files]
+        #test_labels = [action_dict['_'.join(name.split('_')[:-1])] for name in test_files]
+        test_labels = ['_'.join(name.split('_')[:-1]) for name in test_files]
 
         test = (test_files, test_labels)
 

@@ -20,16 +20,14 @@ def load_stanford():
     (train_x, train_y), (val_x, val_y), (test_x, test_y), classes = files.get_stanford40_splits()
 
     # Preprocess dataset (if it hasn't been already)
-    __preprocess_stanford40(train_x, val_x, test_x)
+    __preprocess_stanford40(train_x, train_y, val_x, val_y, test_x, test_y, classes)
 
     preprocessed_img_path = r"Stanford40/PreprocessedImages/"
     train_path, val_path, test_path = get_dataset_paths(preprocessed_img_path)
 
-    # TODO: fix problem that this is loading images from directory in whatever order when y order is not the same, possible
-    # TODO: solution is to use subdirectories per class after all and
-    train_set = image_dataset_from_directory(train_path, labels=train_y, batch_size=BATCH_SIZE, shuffle=False, image_size=(224,224))
-    val_set = image_dataset_from_directory(val_path, labels=val_y, batch_size=BATCH_SIZE, shuffle=False, image_size=(224,224))
-    test_set = image_dataset_from_directory(test_path, labels=test_y, batch_size=BATCH_SIZE, shuffle=False, image_size=(224,224))
+    train_set = image_dataset_from_directory(train_path, labels="inferred", batch_size=BATCH_SIZE, seed=42, image_size=(224,224))
+    val_set = image_dataset_from_directory(val_path, labels="inferred", batch_size=BATCH_SIZE, seed=42, image_size=(224,224))
+    test_set = image_dataset_from_directory(test_path, labels="inferred", batch_size=BATCH_SIZE, seed=42, image_size=(224,224))
 
     return train_set, val_set, test_set
 
@@ -81,7 +79,7 @@ def __get_frame(video, frame_number):
     return frame
 
 
-def __preprocess_stanford40(train_split, val_split, test_split):
+def __preprocess_stanford40(train_x, train_y, val_x, val_y, test_x, test_y, classes):
     img_path = r"Stanford40/JPEGImages/"
     preprocessed_img_path = r"Stanford40/PreprocessedImages/"
     train_path, val_path, test_path = get_dataset_paths(preprocessed_img_path)
@@ -90,19 +88,22 @@ def __preprocess_stanford40(train_split, val_split, test_split):
     preprocessed_dir = os.path.isdir(preprocessed_img_path)
     if not preprocessed_dir:
         os.mkdir(preprocessed_img_path)
-        __preprocess_stanford40_split(img_path, train_path, train_split)
-        __preprocess_stanford40_split(img_path, val_path, val_split)
-        __preprocess_stanford40_split(img_path, test_path, test_split)
+        __preprocess_stanford40_split(img_path, train_path, train_x, train_y, classes)
+        __preprocess_stanford40_split(img_path, val_path, val_x, val_y, classes)
+        __preprocess_stanford40_split(img_path, test_path, test_x, test_y, classes)
 
 
-def __preprocess_stanford40_split(img_path, split_path, split_filenames):
+def __preprocess_stanford40_split(img_path, split_path, split_filenames, labels, classes):
 
     # Create subdirectory for split.
     os.mkdir(split_path)
-    os.mkdir(join(split_path, r"JPEGImages"))
+    for classname in classes:
+        os.mkdir(join(split_path, classname))
+
+    # os.mkdir(join(split_path, r"JPEGImages"))
 
     # For each image in the split filenames, store a resized image in the subdirectory
-    for filename in split_filenames:
+    for (filename, label) in zip(split_filenames, labels):
         img = load_img(join(img_path, filename))
         img = tf.image.resize(img, (224,224))
-        save_img(join(join(split_path, r"JPEGImages"), filename), img)
+        save_img(join(join(split_path, label), filename), img)

@@ -21,9 +21,9 @@ def main():
         # X shape is (batch_size, img_height, img_width, channels)
         # y is a list of labels (integers) shape (batch_size)
         X, y = batch
-        plt.imshow(tf.cast(X[0,:,:,:], dtype=tf.int32))
+        plt.imshow(tf.cast(X[1,:,:,:], dtype=tf.int32))
         plt.show()
-        print(y[0])
+        print(y[1])
         break
     #    print(x, y)
     # s40_num_classes = len(s40_classes)
