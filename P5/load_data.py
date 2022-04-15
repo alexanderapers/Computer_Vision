@@ -25,9 +25,9 @@ def load_stanford():
     preprocessed_img_path = r"Stanford40/PreprocessedImages/"
     train_path, val_path, test_path = get_dataset_paths(preprocessed_img_path)
 
-    train_set = image_dataset_from_directory(train_path, labels="inferred", batch_size=BATCH_SIZE, seed=42, image_size=(224,224))
-    val_set = image_dataset_from_directory(val_path, labels="inferred", batch_size=BATCH_SIZE, seed=42, image_size=(224,224))
-    test_set = image_dataset_from_directory(test_path, labels="inferred", batch_size=BATCH_SIZE, seed=42, image_size=(224,224))
+    train_set = image_dataset_from_directory(train_path, labels="inferred", class_names=classes, batch_size=BATCH_SIZE, seed=42, image_size=(224,224))
+    val_set = image_dataset_from_directory(val_path, labels="inferred", class_names=classes, batch_size=BATCH_SIZE, seed=42, image_size=(224,224))
+    test_set = image_dataset_from_directory(test_path, labels="inferred", class_names=classes, batch_size=BATCH_SIZE, seed=42, image_size=(224,224))
 
     return train_set, val_set, test_set
 

@@ -17,6 +17,9 @@ def main():
     # get the actual list of files for train, validation and test from stanford dataset from the file names
     s40_train_files, s40_val_files, s40_test_files = load_data.load_stanford()
 
+    # TODO make a nice dict of this?
+    print(s40_train_files.class_names)
+
     for batch in s40_train_files:
         # X shape is (batch_size, img_height, img_width, channels)
         # y is a list of labels (integers) shape (batch_size)
