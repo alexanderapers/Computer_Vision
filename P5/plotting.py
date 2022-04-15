@@ -21,7 +21,7 @@ def plot_history_metric(history, model_label, metric_label):
     plt.ylabel(metric_label)
     plt.xlabel('epoch')
     plt.xticks(epochs, labels=[f'{i + 1}' for i in epochs])
-    plt.legend(['train', 'test'], loc='upper left')
+    plt.legend(['train', 'validation'], loc='upper left')
     plt.grid(visible=True, which='major', axis='y')
 
     # Save plot and clear pyplot figure and axes for next time.
