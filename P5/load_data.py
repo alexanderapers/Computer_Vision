@@ -4,6 +4,7 @@ import tensorflow as tf
 from keras.preprocessing.image import load_img, save_img, image_dataset_from_directory
 from files import get_stanford40_splits, get_tvhi_splits
 from video_cap import write_video, load_video
+from tqdm import tqdm
 
 BATCH_SIZE = 32
 
@@ -47,6 +48,7 @@ def load_tvhi():
     train_path, val_path, test_path = get_dataset_paths(preprocessed_img_path)
 
     # TODO make actual datasets from this
+    # TODO by staking the frames and flows on each other
 
     return 0
 
@@ -96,17 +98,23 @@ def __preprocess_tvhi(train_x, train_y, val_x, val_y, test_x, test_y, classes):
 
 
 def __preprocess_tvhi_split(vid_path, split_path, split_filenames, labels, classes):
-
     # Create subdirectory for split.
     os.mkdir(split_path)
     for classname in classes:
         os.mkdir(join(split_path, classname))
 
     # For each image in the split filenames, store a resized image in the subdirectory
-    for filename, label in zip(split_filenames, labels):
-        os.mkdir(join(join(split_path, label), filename.split('.')[0]))
-        vid = load_video(join(vid_path, filename))
-        write_video(join(join(join(split_path, label), filename.split('.')[0]), filename), vid, 16)
+    for filename, label in tqdm(zip(split_filenames, labels)):
+        video_file_dir_name = join(join(split_path, label), filename.split('.')[0])
+        os.mkdir(video_file_dir_name)
+        os.mkdir(join(video_file_dir_name, r"frames"))
+        os.mkdir(join(video_file_dir_name, r"flows"))
+
+        frames, flows = load_video(join(vid_path, filename))
+        video_file_frames_path = join(video_file_dir_name, r"frames")
+        video_file_flows_path = join(video_file_dir_name, r"flows")
+
+        write_video(video_file_frames_path, video_file_flows_path, filename, frames, flows, 16)
 
 
 
