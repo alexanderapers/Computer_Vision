@@ -5,7 +5,7 @@ import tensorflow as tf
 from keras.preprocessing.image import load_img, save_img, image_dataset_from_directory
 import files
 
-BATCH_SIZE = 32
+BATCH_SIZE = 8
 
 def get_dataset_paths(img_path):
     img_path = r"Stanford40/PreprocessedImages/"
