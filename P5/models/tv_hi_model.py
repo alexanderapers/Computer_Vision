@@ -13,8 +13,8 @@ def get_model():
     for layer in model.layers:
         layer.trainable = False
     
-    x = model.layers[-1].output
-    predictions = layers.Dense(40)(x)
+    x = model.layers[-2].output
+    predictions = layers.Dense(4)(x)
 
     opt = keras.optimizers.Adam(learning_rate=0.0001)
     model = Model(
