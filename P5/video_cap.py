@@ -29,13 +29,13 @@ def get_frame(video, frame_number):
 def write_video(frames_dir, flows_dir, file_name, frames, flows, n_frames):
 
     n_frames_total = frames.shape[0]
+
+    frame = frames[n_frames_total//2, :, :, :]
+    name = "{}_frame_{}.jpg".format(file_name.split('.')[0], n_frames_total//2)
+    cv2.imwrite(join(frames_dir, name), frame)
+
     steps = n_frames_total // n_frames
-
     for i in range(n_frames):
-        frame = frames[i*steps, :, :, :]
-        name = "{}_frame_{}.jpg".format(file_name.split('.')[0], i*steps)
-        cv2.imwrite(join(frames_dir, name), frame)
-
         name = "{}_flow_{}.flo".format(file_name.split('.')[0], i*steps)
         cv2.writeOpticalFlow(join(flows_dir, name), flows[i*steps, :, :, :])
 
