@@ -1,0 +1,2 @@
+model_checkpoint_path: "tv-hi-epoch0015"
+all_model_checkpoint_paths: "tv-hi-epoch0015"

@@ -21,7 +21,7 @@ def get_dataset_paths(files_path):
     return train_path, val_path, test_path
 
 
-def load_stanford():
+def load_stanford(batch_size=BATCH_SIZE):
     # Gather train/validation/test splits
     (train_x, train_y), (val_x, val_y), (test_x, test_y), classes = get_stanford40_splits()
 
@@ -31,16 +31,16 @@ def load_stanford():
     preprocessed_img_path = r"Stanford40/PreprocessedImages/"
     train_path, val_path, test_path = get_dataset_paths(preprocessed_img_path)
 
-    train_set = image_dataset_from_directory(train_path, labels="inferred", class_names=classes, batch_size=BATCH_SIZE, seed=42, image_size=(224,224))
-    val_set = image_dataset_from_directory(val_path, labels="inferred", class_names=classes, batch_size=BATCH_SIZE, seed=42, image_size=(224,224))
-    test_set = image_dataset_from_directory(test_path, labels="inferred", class_names=classes, batch_size=BATCH_SIZE, seed=42, image_size=(224,224))
+    train_set = image_dataset_from_directory(train_path, labels="inferred", class_names=classes, batch_size=batch_size, seed=42, image_size=(224,224))
+    val_set = image_dataset_from_directory(val_path, labels="inferred", class_names=classes, batch_size=batch_size, seed=42, image_size=(224,224))
+    test_set = image_dataset_from_directory(test_path, labels="inferred", class_names=classes, batch_size=batch_size, seed=42, image_size=(224,224))
 
     class_dict = { label: idx for idx, label in enumerate(classes) }
 
     return train_set, val_set, test_set, class_dict
 
 
-def load_tvhi():
+def load_tvhi(batch_size=BATCH_SIZE):
     # Gather train/validation/test splits
     (train_x, train_y), (val_x, val_y), (test_x, test_y), classes = get_tvhi_splits()
 
@@ -52,22 +52,21 @@ def load_tvhi():
     (train_frames, train_flows, train_labels), (val_frames, val_flows, val_labels), (test_frames, test_flows, test_labels) =\
         __load_frames_and_flows(train_x, train_y, val_x, val_y, test_x, test_y, class_dict)
 
-    train_frames_set = __make_dataset(train_frames, train_labels)
-    val_frames_set = __make_dataset(val_frames, val_labels)
-    test_frames_set = __make_dataset(test_frames, test_labels)
+    train_frames_set = __make_dataset(train_frames, train_labels, batch_size=batch_size)
+    val_frames_set = __make_dataset(val_frames, val_labels, batch_size=batch_size)
+    test_frames_set = __make_dataset(test_frames, test_labels, batch_size=batch_size)
 
-    train_flows_set = __make_dataset(train_flows, train_labels)
-    val_flows_set = __make_dataset(val_flows, val_labels)
-    test_flows_set = __make_dataset(test_flows, test_labels)
+    train_flows_set = __make_dataset(train_flows, train_labels, batch_size=batch_size)
+    val_flows_set = __make_dataset(val_flows, val_labels, batch_size=batch_size)
+    test_flows_set = __make_dataset(test_flows, test_labels, batch_size=batch_size)
 
     return (train_frames_set, train_flows_set), (val_frames_set, val_flows_set), (test_frames_set, test_flows_set)
 
 
-def __make_dataset(X, y):
+def __make_dataset(X, y, batch_size=BATCH_SIZE):
     dataset = tf.data.Dataset.from_tensor_slices((X, y))
-    dataset = dataset.batch(batch_size=BATCH_SIZE)
+    dataset = dataset.batch(batch_size=batch_size)
     return dataset
-
 
 def __load_frames_and_flows(train_x, train_y, val_x, val_y, test_x, test_y, class_dict):
 
