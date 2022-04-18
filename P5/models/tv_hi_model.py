@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow import keras
 from keras import backend as K
 from keras import layers, Model
-from learning_rate_scheduler import halving_scheduler_10
+from learning_rate_scheduler import halving_scheduler_5
 from load_data import load_tvhi
 
 import plotting
@@ -26,10 +26,10 @@ def get_model():
     for layer in model.layers:
         layer.trainable = False
     
-    x = model.layers[-2].output
-    x = layers.Dense(160)(x)
+    x = model.layers[-4].output
+    x = layers.Dense(30)(x)
     x = layers.Dropout(0.5)(x)
-    x = layers.Dense(80)(x)
+    x = layers.Dense(30)(x)
     x = layers.Dropout(0.5)(x)
     predictions = layers.Dense(4)(x)
 
@@ -45,6 +45,8 @@ def get_model():
     return model
 
 def train_model():
+    # Halve learning rate every 4 epochs using a learning rate scheduler callback.
+    lr_callback = tf.keras.callbacks.LearningRateScheduler(halving_scheduler_5)
 
     checkpoint_path = "weights/tv-hi/tv-hi-epoch{epoch:04d}"
     save_callback = tf.keras.callbacks.ModelCheckpoint(
@@ -58,10 +60,10 @@ def train_model():
     (train, _), (validation, _), _ = load_tvhi(batch_size=BATCH_SIZE)
     
     model = get_model()
-    # model.summary()
     history = model.fit(train,
         validation_data=validation, batch_size=BATCH_SIZE, epochs=EPOCHS,
         callbacks=[save_callback])
+        # callbacks=[save_callback, lr_callback])
 
     plotting.plot_history_metric(history, "TV-HI", "accuracy")
     plotting.plot_history_metric(history, "TV-HI", "loss")

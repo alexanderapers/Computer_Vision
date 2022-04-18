@@ -1,2 +1,2 @@
-model_checkpoint_path: "tv-hi-epoch0008"
-all_model_checkpoint_paths: "tv-hi-epoch0008"
+model_checkpoint_path: "tv-hi-epoch0020"
+all_model_checkpoint_paths: "tv-hi-epoch0020"
