@@ -42,9 +42,7 @@ def get_model():
         loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=['accuracy'])
 
-
     return model
-
 
 def train_model():
 
@@ -56,8 +54,6 @@ def train_model():
         save_weights_only=True,
         save_freq="epoch",
     )
-
-    lr_callback = tf.keras.callbacks.LearningRateScheduler(halving_scheduler_10)
 
     (train, _), (validation, _), _ = load_tvhi(batch_size=BATCH_SIZE)
     

@@ -2,6 +2,18 @@ import tensorflow as tf
 from tensorflow import keras
 from keras import layers, Sequential
 
+import plotting
+from load_data import load_tvhi
+
+# The epoch at the moment of convergence before overfitting began.
+# This is used in a file path so be careful to use two digits: 01, ..., 09, 10, 11, etc.
+CHOSEN_EPOCH = "16"
+
+# Training parameters
+LEARNING_RATE = 0.001
+BATCH_SIZE = 2
+EPOCHS = 20
+
 
 def get_model():
     model_layers = [
@@ -26,17 +38,11 @@ def get_model():
 
         layers.Flatten(),
 
-        # # Full6
-        # layers.Dense(4096),
-        # layers.Dropout(rate=0.5),
-
-        # Full7
-
+        # Full4
         layers.Dense(100),
         layers.Dropout(rate=0.5),
 
         # Output
-        # TODO: Use NUM_CLASSES value.
         layers.Dense(4)
     ]
 
@@ -49,3 +55,34 @@ def get_model():
     return model
 
 
+def train_model():
+
+    checkpoint_path = "weights/tv-hi-flow/tv-hi-flow-epoch{epoch:04d}"
+    save_callback = tf.keras.callbacks.ModelCheckpoint(
+        checkpoint_path,
+        monitor="val_loss",
+        verbose=0,
+        save_weights_only=True,
+        save_freq="epoch",
+    )
+
+    (_, train_flow), (_, validation_flow), _ = load_tvhi(batch_size=BATCH_SIZE)
+    
+    model = get_model()
+    # model.summary()
+    history = model.fit(train_flow,
+        validation_data=validation_flow, batch_size=BATCH_SIZE, epochs=EPOCHS,
+        callbacks=[save_callback])
+
+    plotting.plot_history_metric(history, "TV-HI flows", "accuracy")
+    plotting.plot_history_metric(history, "TV-HI flows", "loss")
+
+def test_model():
+    _, _, (_, test_flow) = load_tvhi(batch_size=BATCH_SIZE)
+
+    model = get_model()
+
+    model.load_weights(f"weights/tv-hi-flow/tv-hi-flow-epoch00{CHOSEN_EPOCH}").expect_partial()
+
+    print(f"\nTesting epoch {CHOSEN_EPOCH}...")
+    loss, acc = model.evaluate(test_flow, verbose=1)
