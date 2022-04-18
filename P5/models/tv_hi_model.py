@@ -10,11 +10,11 @@ from models import stanford40_model
 
 # The epoch at the moment of convergence before overfitting began.
 # This is used in a file path so be careful to use two digits: 01, ..., 09, 10, 11, etc.
-CHOSEN_EPOCH = "19"
+CHOSEN_EPOCH = "08"
 
 # Training parameters
 LEARNING_RATE = 0.0001
-BATCH_SIZE = 8
+BATCH_SIZE = 2
 EPOCHS = 20
 
 def get_model():
@@ -28,9 +28,9 @@ def get_model():
     
     x = model.layers[-2].output
     x = layers.Dense(160)(x)
-    x = layers.Dropout(0.8)(x)
+    x = layers.Dropout(0.5)(x)
     x = layers.Dense(80)(x)
-    x = layers.Dropout(0.8)(x)
+    x = layers.Dropout(0.5)(x)
     predictions = layers.Dense(4)(x)
 
     opt = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
@@ -59,7 +59,7 @@ def train_model():
 
     lr_callback = tf.keras.callbacks.LearningRateScheduler(halving_scheduler_10)
 
-    (train, _), (validation, _), _ = load_tvhi()
+    (train, _), (validation, _), _ = load_tvhi(batch_size=BATCH_SIZE)
     
     model = get_model()
     # model.summary()
