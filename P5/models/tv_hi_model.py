@@ -14,6 +14,8 @@ def get_model():
         layer.trainable = False
     
     x = model.layers[-2].output
+    x = layers.Dense(160)(x)
+    x = layers.Dropout(0.5)(x)
     predictions = layers.Dense(4)(x)
 
     opt = keras.optimizers.Adam(learning_rate=0.0001)
