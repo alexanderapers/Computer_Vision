@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from keras import backend as K
@@ -9,11 +10,11 @@ from keras.layers import *
 import plotting
 from models import tv_hi_model, tvhi_flows_model
 
-CHOSEN_EPOCH = "08"
+CHOSEN_EPOCH = "12"
 
 # Training parameters
 LEARNING_RATE = 0.0001
-BATCH_SIZE = 2
+BATCH_SIZE = 1
 EPOCHS = 20
 
 
@@ -53,6 +54,18 @@ def get_model():
 
     return model
 
+# Horribly mutilates the dataset so the two-stream network will take it.
+# TODO: Find out why -- why god why -- the datasets don't have a simple way to do this.
+def __deform_dataset(frames, flows):
+    y = [x[1][0] for x in frames]
+    x1 = [x[0][0] for x in frames]
+    x2 = [x[0][0] for x in flows]
+    
+    y = np.array(y, dtype=int)
+    x1 = np.array(x1, dtype=int)
+    x2 = np.array(x2, dtype=float)
+
+    return x1, x2, y
 
 def train_model():
     # Halve learning rate every 4 epochs using a learning rate scheduler callback.
@@ -68,10 +81,15 @@ def train_model():
     )
 
     (train, train_flows), (val, val_flows), _ = load_tvhi(batch_size=BATCH_SIZE)
+    
+    # Horribly deform datasets to make them work with the two-stream input.
+    x1, x2, y = __deform_dataset(train, train_flows)
+    val_x1, val_x2, val_y = __deform_dataset(val, val_flows)
 
     model = get_model()
-    history = model.fit(train,
-                        validation_data=val, batch_size=BATCH_SIZE, epochs=EPOCHS,
+    history = model.fit(x=[x1, x2], y=y,
+                        validation_data=([val_x1, val_x2], val_y),
+                        batch_size=BATCH_SIZE, epochs=EPOCHS,
                         callbacks=[save_callback])
     # callbacks=[save_callback, lr_callback])
 
@@ -80,13 +98,14 @@ def train_model():
 
 def test_model():
     _, _, (test, test_flows) = load_tvhi(batch_size=BATCH_SIZE)
+    x1, x2, y = __deform_dataset(test, test_flows)
 
     model = get_model()
 
-    model.load_weights(f"weights/tv-hi-two-stream/tv-hi--two-stream-epoch00{CHOSEN_EPOCH}").expect_partial()
+    model.load_weights(f"weights/tv-hi-two-stream/tv-hi-two-stream-epoch00{CHOSEN_EPOCH}").expect_partial()
 
     print(f"\nTesting epoch {CHOSEN_EPOCH}...")
-    loss, acc = model.evaluate(test, verbose=1)
+    loss, acc = model.evaluate(x=[x1, x2], y=y, verbose=1)
 
 
 # Load both models

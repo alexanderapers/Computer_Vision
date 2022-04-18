@@ -1,0 +1,2 @@
+model_checkpoint_path: "tv-hi-two-stream-epoch0020"
+all_model_checkpoint_paths: "tv-hi-two-stream-epoch0020"

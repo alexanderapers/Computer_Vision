@@ -9,8 +9,8 @@ def main():
     # tvhi_flows_model.train_model()
     #tvhi_flows_model.test_model()
 
-    two_stream_model.train_model()
-    # two_stream_model.test_model()
+    # two_stream_model.train_model()
+    two_stream_model.test_model()
 
 if __name__ == "__main__":
     main()
