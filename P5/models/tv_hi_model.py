@@ -8,13 +8,19 @@ from load_data import load_tvhi
 import plotting
 from models import stanford40_model
 
+# The epoch at the moment of convergence before overfitting began.
+# This is used in a file path so be careful to use two digits: 01, ..., 09, 10, 11, etc.
+CHOSEN_EPOCH = "19"
+
+# Training parameters
+LEARNING_RATE = 0.0001
 BATCH_SIZE = 8
-EPOCHS = 15
+EPOCHS = 20
 
 def get_model():
 
     model = stanford40_model.get_model()
-    model.load_weights("weights/stanford40-epoch0011").expect_partial()
+    model.load_weights("weights/stanford40/stanford40-epoch0011").expect_partial()
 
 
     for layer in model.layers:
@@ -22,10 +28,12 @@ def get_model():
     
     x = model.layers[-2].output
     x = layers.Dense(160)(x)
-    x = layers.Dropout(0.5)(x)
+    x = layers.Dropout(0.8)(x)
+    x = layers.Dense(80)(x)
+    x = layers.Dropout(0.8)(x)
     predictions = layers.Dense(4)(x)
 
-    opt = keras.optimizers.Adam(learning_rate=0.0001)
+    opt = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
     model = Model(
         inputs = model.input,
         outputs = predictions)
@@ -51,15 +59,23 @@ def train_model():
 
     lr_callback = tf.keras.callbacks.LearningRateScheduler(halving_scheduler_10)
 
-    (train, _), (validation, _), (test, _) = load_tvhi()
+    (train, _), (validation, _), _ = load_tvhi()
     
     model = get_model()
     # model.summary()
     history = model.fit(train,
         validation_data=validation, batch_size=BATCH_SIZE, epochs=EPOCHS,
-        callbacks=[save_callback, lr_callback])
+        callbacks=[save_callback])
 
     plotting.plot_history_metric(history, "TV-HI", "accuracy")
     plotting.plot_history_metric(history, "TV-HI", "loss")
 
+def test_model():
+    _, _, (test, _) = load_tvhi(batch_size=BATCH_SIZE)
+
+    model = get_model()
+
+    model.load_weights(f"weights/tv-hi/tv-hi-epoch00{CHOSEN_EPOCH}").expect_partial()
+
+    print(f"\nTesting epoch {CHOSEN_EPOCH}...")
     loss, acc = model.evaluate(test, verbose=1)

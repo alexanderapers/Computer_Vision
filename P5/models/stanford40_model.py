@@ -6,7 +6,6 @@ from keras import layers, Sequential
 from load_data import load_stanford
 from learning_rate_scheduler import halving_scheduler_4
 import plotting
-from models import stanford40_model
 
 # The epoch at the moment of convergence before overfitting began.
 # This is used in a file path so be careful to use two digits: 01, ..., 09, 10, 11, etc.
@@ -70,7 +69,7 @@ def train_model():
     train, validation, _, _ = load_stanford(batch_size=BATCH_SIZE)
 
     # Save model weights every epoch using a checkpoint callback.
-    checkpoint_path = "weights/stanford40-epoch{epoch:04d}"
+    checkpoint_path = "weights/stanford40/stanford40-epoch{epoch:04d}"
     save_callback = tf.keras.callbacks.ModelCheckpoint(
         checkpoint_path,
         monitor="val_loss",
@@ -83,7 +82,7 @@ def train_model():
     lr_callback = tf.keras.callbacks.LearningRateScheduler(halving_scheduler_4)
 
     # Get the model, fit it to the data, and record the training history.
-    model = stanford40_model.get_model()
+    model = get_model()
     history = model.fit(train,
         validation_data=validation, batch_size=BATCH_SIZE, epochs=EPOCHS,
         callbacks=[lr_callback, save_callback])
@@ -94,13 +93,14 @@ def train_model():
 def test_model():
     _, _, test, classes = load_stanford(batch_size=BATCH_SIZE)
 
-    model = stanford40_model.get_model()
+    model = get_model()
 
-    model.load_weights(f"weights/stanford40-epoch00{CHOSEN_EPOCH}").expect_partial()
+    model.load_weights(f"weights/stanford40/stanford40-epoch00{CHOSEN_EPOCH}").expect_partial()
 
     # Get prediction values
     # y_pred = model.predict(s40_test, batch_size=BATCH_SIZE)
     # y_pred = np.argmax(y_pred, 1)
+    print(f"\nTesting epoch {CHOSEN_EPOCH}...")
 
     # Predict y values and evaluate
     loss, acc = model.evaluate(test, verbose=1)
