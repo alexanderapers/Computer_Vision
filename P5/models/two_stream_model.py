@@ -54,6 +54,7 @@ def get_model():
 
     return model
 
+# From https://stackoverflow.com/questions/63105401/tensorflow-2-0-create-a-dataset-to-feed-a-model-with-multiple-inputs-of-differen
 def __data_tx(d1, d2, t):
     return {"frame_input": d1, "flow_input": d2}, tf.transpose(t)
 
