@@ -60,9 +60,9 @@ def __data_tx(d1, d2, t):
 
 # Beautifully alters the dataset so the two-stream network will take it.
 def __reform_dataset(frames, flows):
-    labels = frames.map(lambda x, y: y)
-    frames = frames.map(lambda x, y: x)
-    flows = flows.map(lambda x, y: x)
+    labels = frames.map(lambda _, y: y)
+    frames = frames.map(lambda x, _: x)
+    flows = flows.map(lambda x, _: x)
 
     test_dataset = tf.data.Dataset.zip((frames, flows, labels)).map(__data_tx)
 
@@ -83,7 +83,7 @@ def train_model():
 
     (train, train_flows), (val, val_flows), _ = load_tvhi(batch_size=BATCH_SIZE)
     
-    # Horribly deform datasets to make them work with the two-stream input.
+    # Beautifully alters datasets to make them work with the two-stream input.
     train_dataset = __reform_dataset(train, train_flows)
     val_dataset = __reform_dataset(val, val_flows)
 
