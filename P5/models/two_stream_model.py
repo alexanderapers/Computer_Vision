@@ -10,7 +10,7 @@ from keras.layers import *
 import plotting
 from models import tv_hi_model, tvhi_flows_model
 
-CHOSEN_EPOCH = "12"
+CHOSEN_EPOCH = "12" 
 
 # Training parameters
 LEARNING_RATE = 0.0001
@@ -54,18 +54,18 @@ def get_model():
 
     return model
 
-# Horribly mutilates the dataset so the two-stream network will take it.
-# TODO: Find out why -- why god why -- the datasets don't have a simple way to do this.
-def __deform_dataset(frames, flows):
-    y = [x[1][0] for x in frames]
-    x1 = [x[0][0] for x in frames]
-    x2 = [x[0][0] for x in flows]
-    
-    y = np.array(y, dtype=int)
-    x1 = np.array(x1, dtype=int)
-    x2 = np.array(x2, dtype=float)
+def __data_tx(d1, d2, t):
+    return {"frame_input": d1, "flow_input": d2}, tf.transpose(t)
 
-    return x1, x2, y
+# Beautifully alters the dataset so the two-stream network will take it.
+def __reform_dataset(frames, flows):
+    labels = frames.map(lambda x, y: y)
+    frames = frames.map(lambda x, y: x)
+    flows = flows.map(lambda x, y: x)
+
+    test_dataset = tf.data.Dataset.zip((frames, flows, labels)).map(__data_tx)
+
+    return test_dataset
 
 def train_model():
     # Halve learning rate every 4 epochs using a learning rate scheduler callback.
@@ -83,12 +83,12 @@ def train_model():
     (train, train_flows), (val, val_flows), _ = load_tvhi(batch_size=BATCH_SIZE)
     
     # Horribly deform datasets to make them work with the two-stream input.
-    x1, x2, y = __deform_dataset(train, train_flows)
-    val_x1, val_x2, val_y = __deform_dataset(val, val_flows)
+    train_dataset = __reform_dataset(train, train_flows)
+    val_dataset = __reform_dataset(val, val_flows)
 
     model = get_model()
-    history = model.fit(x=[x1, x2], y=y,
-                        validation_data=([val_x1, val_x2], val_y),
+    history = model.fit(train_dataset,
+                        validation_data=val_dataset,
                         batch_size=BATCH_SIZE, epochs=EPOCHS,
                         callbacks=[save_callback])
     # callbacks=[save_callback, lr_callback])
@@ -98,14 +98,15 @@ def train_model():
 
 def test_model():
     _, _, (test, test_flows) = load_tvhi(batch_size=BATCH_SIZE)
-    x1, x2, y = __deform_dataset(test, test_flows)
+    # x1, x2, y = __deform_dataset(test, test_flows)
+    test_dataset = __reform_dataset(test, test_flows)
 
     model = get_model()
 
     model.load_weights(f"weights/tv-hi-two-stream/tv-hi-two-stream-epoch00{CHOSEN_EPOCH}").expect_partial()
 
     print(f"\nTesting epoch {CHOSEN_EPOCH}...")
-    loss, acc = model.evaluate(x=[x1, x2], y=y, verbose=1)
+    loss, acc = model.evaluate(test_dataset, verbose=1)
 
 
 # Load both models
