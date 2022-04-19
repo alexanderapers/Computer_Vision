@@ -18,7 +18,7 @@ EPOCHS = 20
 def get_model():
     model_layers = [
 
-        layers.InputLayer(input_shape=(16, 224, 224, 2)),
+        layers.InputLayer(input_shape=(16, 224, 224, 2), name="flow_input"),
         tf.keras.layers.Rescaling(1. / 255),
 
         # Conv1

@@ -20,7 +20,7 @@ def get_model():
     model_layers = [
         # TODO: do a simple normalisation for each image
 
-        layers.InputLayer(input_shape=(224, 224, 3)),
+        layers.InputLayer(input_shape=(224, 224, 3), name="frame_input"),
         tf.keras.layers.Rescaling(1./255),
         
         # Conv1
