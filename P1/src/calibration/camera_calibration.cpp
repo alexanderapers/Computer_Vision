@@ -119,6 +119,7 @@ int CameraCalibration::calibrate(int argc, char* argv[], const string default_fi
         bool found;
 
         int chessBoardFlags = CALIB_CB_ADAPTIVE_THRESH | CALIB_CB_NORMALIZE_IMAGE;
+        chessBoardFlags = CALIB_CB_FAST_CHECK;
 
         if (!s.useFisheye) {
             // fast check erroneously fails with high distortions like fisheye
@@ -166,7 +167,7 @@ int CameraCalibration::calibrate(int argc, char* argv[], const string default_fi
         }
         else
         {
-            std::cout << "corners not found in image number " << s.atImageList << std::endl;
+            //std::cout << "corners not found in image number " << s.atImageList << std::endl;
         }
         //! [pattern_found]
         //----------------------------- Output Text ------------------------------------------------

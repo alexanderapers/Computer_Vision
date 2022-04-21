@@ -1,0 +1,37 @@
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #
+=================================================================
+ conv2d_2 (Conv2D)           (None, 28, 28, 32)        320
+
+ re_lu_3 (ReLU)              (None, 28, 28, 32)        0
+
+ max_pooling2d_2 (MaxPooling  (None, 14, 14, 32)       0
+ 2D)
+
+ batch_normalization_2 (Batc  (None, 14, 14, 32)       128
+ hNormalization)
+
+ conv2d_3 (Conv2D)           (None, 14, 14, 64)        18496
+
+ re_lu_4 (ReLU)              (None, 14, 14, 64)        0
+
+ max_pooling2d_3 (MaxPooling  (None, 7, 7, 64)         0
+ 2D)
+
+ batch_normalization_3 (Batc  (None, 7, 7, 64)         256
+ hNormalization)
+
+ flatten_1 (Flatten)         (None, 3136)              0
+
+ dense_2 (Dense)             (None, 128)               401536
+
+ re_lu_5 (ReLU)              (None, 128)               0
+
+ dense_3 (Dense)             (None, 10)                1290
+
+=================================================================
+Total params: 422,026
+Trainable params: 421,834
+Non-trainable params: 192
+_________________________________________________________________
+None

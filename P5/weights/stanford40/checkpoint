@@ -1,0 +1,2 @@
+model_checkpoint_path: "stanford40-epoch0011"
+all_model_checkpoint_paths: "stanford40-epoch0011"
