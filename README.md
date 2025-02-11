@@ -1,4 +1,4 @@
-# Computer_Vision
+# Computer Vision
 
 Practical assignments for the course Computer Vision 
 
